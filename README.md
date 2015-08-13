@@ -8,7 +8,7 @@
 
 ## web page
 ```markdown
-first time: PUBLIC KEY [make this?](/showmymakekeys)
+first time: PUBLIC KEY [make this?](/showmymakekeys) (something, something make a name)
 next time: SIGN IT
 ## links/signed/archived
 * https://onetimeslam.com/234234
