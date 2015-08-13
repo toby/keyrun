@@ -1,8 +1,12 @@
 # somethingface
 
-## Get Running
+## get running
+1. register **https://key.run/YOUBABY**
+2. upload your keyface
+3. key.run stuff you post around the place
+4. it's all here
 
-## Web Page
+## web page
 ```markdown
 PUBLIC KEY
 ## links/signed
