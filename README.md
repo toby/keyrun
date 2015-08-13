@@ -15,6 +15,12 @@ next time: SIGN IT
 * https://myoutrageoustweet.face
 ```
 
+1. sign text
+2. get link
+3. post places
+4. referer log for each link (happens a lot)
+**what it looks like:** "this X has been signed and archived. see at https://key.run/myface/123" <- marks it down, when they come in
+
 ## find my moopies
 * https://www.uniteddomains.com/domain/domainr/?domain=key.run&et_cid=72&et_lid=307&et_sub=key.run
 * https://domainr.com/key.run?q=keyrunner
