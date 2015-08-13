@@ -20,6 +20,7 @@ next time: SIGN IT
 2. get link
 3. post places
 4. referer log for each link (happens a lot)
+
 ## what it looks like
 `this X has been signed and archived. see at https://key.run/myface/123` <- marks it down, when they come in
 
