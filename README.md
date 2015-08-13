@@ -8,7 +8,7 @@
 
 ## web page
 ```markdown
-PUBLIC KEY [make this?](/showsomemakekeys)
+PUBLIC KEY [make this?](/showmymakekeys)
 ## links/signed
 * https://onetimeslam.com/234234
 * https://myoutrageoustweet.face
