@@ -1,9 +1,14 @@
 # somethingface
+
 ## Get Running
+
+## Web Page
+```
 PUBLIC KEY
-## links
+## links/signed
 * https://onetimeslam.com/234234
 * https://myoutrageoustweet.face
+```
 
 ## find my moopies
 * https://www.uniteddomains.com/domain/domainr/?domain=key.run&et_cid=72&et_lid=307&et_sub=key.run
