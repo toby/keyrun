@@ -2,6 +2,6 @@
 
 ## Usage
 
-```
+```bash
 $ keyrun --local
 ```
