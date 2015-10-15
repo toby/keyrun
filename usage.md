@@ -2,6 +2,6 @@
 
 ## Usage
 
-"""
+```
 $ keyrun --local
-"""
+```
