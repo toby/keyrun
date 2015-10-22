@@ -9,3 +9,7 @@ Checking if registered... Not registered!
 To register this server send 0.001 uBTC to: 14jFdgcBrhDdrk8NteM28KPgsnmHuV91iH
 Waiting for registration... Registered!
 ```
+
+## Login address
+* bitcoin address you send a small amount to to login
+* verified because your transaction is signed with matching blockchain name record
