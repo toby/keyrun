@@ -11,5 +11,18 @@ Waiting for registration... Registered!
 ```
 
 ## Login address
+
 * bitcoin address you send a small amount to to login
 * verified because your transaction is signed with matching blockchain name record
+
+## Bitcoin voting
+
+* all content gets a bitcoin address
+  - deterministic address based on author's public key
+* ui sorts content by funds and/or # of unique senders
+
+## DHT filter/content downvoting
+
+* downvotes are *not* Bitcoin transactions
+* social or vote based filter on content stored distributed
+* multiple filters available
