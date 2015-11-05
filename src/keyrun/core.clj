@@ -1,7 +1,7 @@
 (ns keyrun.core
   (:gen-class)
   (:import
-    (org.bitcoinj.core NetworkParameters)
+    (org.bitcoinj.core NetworkParameters Address ECKey)
     (org.bitcoinj.params TestNet3Params RegTestParams MainNetParams)
     ))
 
@@ -30,12 +30,22 @@
 (defmethod file-prefix MainNetParams [-]
   "forwarding-service")
 
+(defn parse-address [s params]
+  (try
+    (Address. params s)
+    (catch Exception e
+      (println "Bad address:" (.getMessage e)))
+    ))
+
 (defn -main
   "Starting a key.run server"
   [& [address network-type]]
   (if (or (= "help" address) (nil? address))
     (usage)
     (let [params (network-params network-type)
-          fp (file-prefix params)]
-      (println fp)
+          fp (file-prefix params)
+          forwarding-address (parse-address address params)
+          ]
+      (println "Forwarding address:" (.toString forwarding-address))
+      (println "New key:" (.getPrivateKeyAsWiF (ECKey.) params))
       )))
