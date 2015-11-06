@@ -1,7 +1,10 @@
 (ns keyrun.core
   (:gen-class)
+  (:require [clojure.tools.logging :as log])
   (:import
-    (org.bitcoinj.core NetworkParameters Address ECKey)
+    (org.bitcoinj.core NetworkParameters Address ECKey PeerGroup BlockChain)
+    (org.bitcoinj.store SPVBlockStore)
+    (org.bitcoinj.net.discovery DnsDiscovery)
     (org.bitcoinj.params TestNet3Params RegTestParams MainNetParams)
     ))
 
@@ -21,20 +24,20 @@
 
 (defmulti file-prefix class)
 
-(defmethod file-prefix TestNet3Params [-]
-  "forwarding-service-testnet")
+(defmethod file-prefix TestNet3Params [_]
+  "testnet")
 
-(defmethod file-prefix RegTestParams [-]
-  "forwarding-service-regtest")
+(defmethod file-prefix RegTestParams [_]
+  "regtest")
 
-(defmethod file-prefix MainNetParams [-]
-  "forwarding-service")
+(defmethod file-prefix MainNetParams [_]
+  "production")
 
 (defn parse-address [s params]
   (try
     (Address. params s)
     (catch Exception e
-      (println "Bad address:" (.getMessage e)))
+      (log/error "Bad address:" (.getMessage e)))
     ))
 
 (defn -main
@@ -43,9 +46,19 @@
   (if (or (= "help" address) (nil? address))
     (usage)
     (let [params (network-params network-type)
-          fp (file-prefix params)
-          forwarding-address (parse-address address params)
+          network-prefix (file-prefix params)
+          namespace-address (parse-address address params)
+          blockstore-file (clojure.java.io/file (str "./" network-prefix ".blockstore"))
+          blockstore (SPVBlockStore. params blockstore-file)
+          blockchain (BlockChain. params blockstore)
+          peer-group (PeerGroup. params blockchain)
           ]
-      (println "Forwarding address:" (.toString forwarding-address))
-      (println "New key:" (.getPrivateKeyAsWiF (ECKey.) params))
+      (log/info "Namespace address:" (.toString namespace-address))
+      (log/info "Starting peer group...")
+      (doto peer-group
+        (.setUserAgent "key.run", "0.1")
+        (.addPeerDiscovery (DnsDiscovery. params))
+        (.start)
+        (.downloadBlockChain))
+      ;(println "New key:" (.getPrivateKeyAsWiF (ECKey.) params))
       )))

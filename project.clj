@@ -4,6 +4,9 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.7.0"]
+                 [org.clojure/tools.logging "0.3.1"]
+                 [org.slf4j/slf4j-log4j12 "1.7.12"]
+                 [log4j/log4j "1.2.17"]
                  [org.bitcoinj/bitcoinj-core "0.13.3"]]
   :main ^:skip-aot keyrun.core
   :target-path "target/%s"
