@@ -40,11 +40,11 @@
       (log/error "Bad address:" (.getMessage e)))
     ))
 
-(defn bitcoin-address->ECKey [address]
+(defn bitcoin-address->ECKey [address params]
   (try
-    (ECKey. nil (.getBytes address)))
-  (catch Exception e
-    (log/error "Bad address:" (.getMessage e))))
+    (ECKey. nil (.getBytes address))
+    (catch Exception e
+      (log/error "Bad address:" (.getMessage e)))))
 
 ; default namespace key: 1GzjTsqp3LASxLsEd1vsKiDHTuPa2aYm5G
 
@@ -55,7 +55,7 @@
     (usage)
     (let [params (network-params network-type)
           network-prefix (file-prefix params)
-          namespace-address (parse-address address params) ; TODO check nil
+          namespace-address (bitcoin-address->ECKey address params) ; TODO check nil
           blockstore-file (clojure.java.io/file (str "./" network-prefix ".blockstore"))
           blockstore (SPVBlockStore. params blockstore-file) ; TODO load checkpoint
           blockchain (BlockChain. params blockstore)
