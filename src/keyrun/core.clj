@@ -33,14 +33,14 @@
 (defmethod file-prefix MainNetParams [_]
   "production")
 
-(defn bitcoin-address->Address [address params]
+(defn string->Address [address params]
   (try
     (Address. params address)
     (catch Exception e
       (log/error "Bad address:" (.getMessage e)))
     ))
 
-(defn bitcoin-address->ECKey [address params]
+(defn string->ECKey [address params]
   (try
     (ECKey. nil (.getBytes address))
     (catch Exception e
@@ -55,19 +55,22 @@
     (usage)
     (let [params (network-params network-type)
           network-prefix (file-prefix params)
-          namespace-address (bitcoin-address->ECKey address params) ; TODO check nil
+          namespace-address (string->Address address params) ; TODO check nil
           blockstore-file (clojure.java.io/file (str "./" network-prefix ".blockstore"))
           blockstore (SPVBlockStore. params blockstore-file) ; TODO load checkpoint
           blockchain (BlockChain. params blockstore)
           peer-group (PeerGroup. params blockchain)
           ]
-      (log/info "Namespace address:" (.toString namespace-address))
-      (log/info "Starting peer group...")
-      (doto peer-group
-        (.setUserAgent "key.run", "0.1")
-        (.addPeerDiscovery (DnsDiscovery. params))
-        ; (.setFastCatchupTime) ; TODO set to start of key.run
-        (.start)
-        (.downloadBlockChain))
-      ;(println "New key:" (.getPrivateKeyAsWiF (ECKey.) params))
+
+      (log/info "Namespace address:" (.toBase58 namespace-address))
+      (log/info "New key:" (.getPrivateKeyAsWiF (ECKey.) params))
+
+      ;(log/info "Starting peer group...")
+      ;(doto peer-group
+        ;(.setUserAgent "key.run", "0.1")
+        ;(.addPeerDiscovery (DnsDiscovery. params))
+        ;; (.setFastCatchupTime) ; TODO set to start of key.run
+        ;(.start)
+        ;(.downloadBlockChain))
+
       )))
