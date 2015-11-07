@@ -33,12 +33,20 @@
 (defmethod file-prefix MainNetParams [_]
   "production")
 
-(defn parse-address [s params]
+(defn bitcoin-address->Address [address params]
   (try
-    (Address. params s)
+    (Address. params address)
     (catch Exception e
       (log/error "Bad address:" (.getMessage e)))
     ))
+
+(defn bitcoin-address->ECKey [address]
+  (try
+    (ECKey. nil (.getBytes address)))
+  (catch Exception e
+    (log/error "Bad address:" (.getMessage e))))
+
+; default namespace key: 1GzjTsqp3LASxLsEd1vsKiDHTuPa2aYm5G
 
 (defn -main
   "Starting a key.run server"
@@ -47,9 +55,9 @@
     (usage)
     (let [params (network-params network-type)
           network-prefix (file-prefix params)
-          namespace-address (parse-address address params)
+          namespace-address (parse-address address params) ; TODO check nil
           blockstore-file (clojure.java.io/file (str "./" network-prefix ".blockstore"))
-          blockstore (SPVBlockStore. params blockstore-file)
+          blockstore (SPVBlockStore. params blockstore-file) ; TODO load checkpoint
           blockchain (BlockChain. params blockstore)
           peer-group (PeerGroup. params blockchain)
           ]
@@ -58,6 +66,7 @@
       (doto peer-group
         (.setUserAgent "key.run", "0.1")
         (.addPeerDiscovery (DnsDiscovery. params))
+        ; (.setFastCatchupTime) ; TODO set to start of key.run
         (.start)
         (.downloadBlockChain))
       ;(println "New key:" (.getPrivateKeyAsWiF (ECKey.) params))
