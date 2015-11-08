@@ -2,7 +2,7 @@
   (:gen-class)
   (:require [clojure.tools.logging :as log])
   (:import
-    (org.bitcoinj.core NetworkParameters Address ECKey PeerGroup BlockChain Utils PeerFilterProvider BloomFilter)
+    (org.bitcoinj.core NetworkParameters Address ECKey PeerGroup BlockChain Utils PeerFilterProvider BloomFilter AbstractPeerEventListener)
     (org.bitcoinj.store SPVBlockStore)
     (org.bitcoinj.net.discovery DnsDiscovery)
     (org.bitcoinj.params TestNet3Params RegTestParams MainNetParams)
@@ -56,6 +56,15 @@
     (getEarliestKeyCreationTime [this] 0)
     (isRequiringUpdateAllBloomFilter [this] false)))
 
+(defn peer-event-listener [params]
+  (proxy [AbstractPeerEventListener] []
+    (onTransaction [self peer transaction]
+      (log/info "FOUND TRANSACTION:" (.getHash transaction))
+      (doseq [output (.getOutputs transaction)]
+        (log/info "OUTPUT value:"  (.getValue output))
+        (log/info "OUTPUT:"  (.toString output)))
+      )))
+
 ; default namespace key: 1GzjTsqp3LASxLsEd1vsKiDHTuPa2aYm5G
 
 (defn -main
@@ -67,6 +76,7 @@
           network-prefix (file-prefix params)
           namespace-address (string->Address address params) ; TODO check nil
           peer-filter (address-peer-filter namespace-address)
+          event-listener (peer-event-listener params)
           blockstore-file (clojure.java.io/file (str "./" network-prefix ".blockstore"))
           blockstore (SPVBlockStore. params blockstore-file) ; TODO load checkpoint
           blockchain (BlockChain. params blockstore)
@@ -80,9 +90,13 @@
         (.setUserAgent "key.run", "0.1")
         (.addPeerDiscovery (DnsDiscovery. params))
         (.addPeerFilterProvider peer-filter)
+        (.addEventListener event-listener)
         ; (.setFastCatchupTime) ; TODO set to start of key.run
         (.start)
         (.downloadBlockChain))
+
+      (while (not= "q" (clojure.string/lower-case (read-line)))
+        (log/info "Press `q` to quit."))
 
       )))
 
