@@ -58,7 +58,7 @@
 
 (defn peer-event-listener [params]
   (proxy [AbstractPeerEventListener] []
-    (onTransaction [self peer transaction]
+    (onTransaction [peer transaction]
       (log/info "FOUND TRANSACTION:" (.getHash transaction))
       (doseq [output (.getOutputs transaction)]
         (log/info "OUTPUT value:"  (.getValue output))
@@ -95,8 +95,7 @@
         (.start)
         (.downloadBlockChain))
 
-      (while (not= "q" (clojure.string/lower-case (read-line)))
-        (log/info "Press `q` to quit."))
+      (while (not= "q" (clojure.string/lower-case (read-line))))
 
       )))
 
