@@ -2,7 +2,7 @@
   (:gen-class)
   (:require [clojure.tools.logging :as log])
   (:import
-    (org.bitcoinj.core NetworkParameters Address ECKey PeerGroup BlockChain)
+    (org.bitcoinj.core NetworkParameters Address ECKey PeerGroup BlockChain Utils PeerFilterProvider BloomFilter)
     (org.bitcoinj.store SPVBlockStore)
     (org.bitcoinj.net.discovery DnsDiscovery)
     (org.bitcoinj.params TestNet3Params RegTestParams MainNetParams)
@@ -40,11 +40,21 @@
       (log/error "Bad address:" (.getMessage e)))
     ))
 
-(defn string->ECKey [address params]
-  (try
-    (ECKey. nil (.getBytes address))
-    (catch Exception e
-      (log/error "Bad address:" (.getMessage e)))))
+(defn address-peer-filter [address]
+  (reify
+    PeerFilterProvider
+    (beginBloomFilterCalculation [this]
+      (log/info "Begin bloom filter calculation"))
+    (endBloomFilterCalculation [this]
+      (log/info "End bloom filter calculation"))
+    (getBloomFilter [this size falsePositiveRate nTweak]
+      (log/info "get bloom filter")
+      (let [bloom (BloomFilter. size falsePositiveRate nTweak)]
+        (.insert bloom (.getHash160 address))
+        bloom))
+    (getBloomFilterElementCount [this] 1)
+    (getEarliestKeyCreationTime [this] 0)
+    (isRequiringUpdateAllBloomFilter [this] false)))
 
 ; default namespace key: 1GzjTsqp3LASxLsEd1vsKiDHTuPa2aYm5G
 
@@ -56,21 +66,26 @@
     (let [params (network-params network-type)
           network-prefix (file-prefix params)
           namespace-address (string->Address address params) ; TODO check nil
+          peer-filter (address-peer-filter namespace-address)
           blockstore-file (clojure.java.io/file (str "./" network-prefix ".blockstore"))
           blockstore (SPVBlockStore. params blockstore-file) ; TODO load checkpoint
           blockchain (BlockChain. params blockstore)
           peer-group (PeerGroup. params blockchain)
           ]
 
-      (log/info "Namespace address:" (.toBase58 namespace-address))
-      (log/info "New key:" (.getPrivateKeyAsWiF (ECKey.) params))
+      (log/info "Namespace address:" (.toString namespace-address))
 
-      ;(log/info "Starting peer group...")
-      ;(doto peer-group
-        ;(.setUserAgent "key.run", "0.1")
-        ;(.addPeerDiscovery (DnsDiscovery. params))
-        ;; (.setFastCatchupTime) ; TODO set to start of key.run
-        ;(.start)
-        ;(.downloadBlockChain))
+      (log/info "Starting peer group...")
+      (doto peer-group
+        (.setUserAgent "key.run", "0.1")
+        (.addPeerDiscovery (DnsDiscovery. params))
+        (.addPeerFilterProvider peer-filter)
+        ; (.setFastCatchupTime) ; TODO set to start of key.run
+        (.start)
+        (.downloadBlockChain))
 
       )))
+
+(def k "1GzjTsqp3LASxLsEd1vsKiDHTuPa2aYm5G")
+(def params (network-params :default))
+(def ka (string->Address k params))
