@@ -40,7 +40,7 @@
       (log/error "Bad address:" (.getMessage e)))
     ))
 
-(defn address-peer-filter [address]
+(defn address-peer-filter [addresses]
   (reify
     PeerFilterProvider
     (beginBloomFilterCalculation [this]
@@ -50,9 +50,10 @@
     (getBloomFilter [this size falsePositiveRate nTweak]
       (log/info "get bloom filter")
       (let [bloom (BloomFilter. size falsePositiveRate nTweak)]
-        (.insert bloom (.getHash160 address))
+        (doseq [address addresses]
+          (.insert bloom (.getHash160 address)))
         bloom))
-    (getBloomFilterElementCount [this] 1)
+    (getBloomFilterElementCount [this] (count addresses))
     (getEarliestKeyCreationTime [this] 0)
     (isRequiringUpdateAllBloomFilter [this] false)))
 
@@ -75,7 +76,7 @@
     (let [params (network-params network-type)
           network-prefix (file-prefix params)
           namespace-address (string->Address address params) ; TODO check nil
-          peer-filter (address-peer-filter namespace-address)
+          peer-filter (address-peer-filter [namespace-address])
           event-listener (peer-event-listener params)
           blockstore-file (clojure.java.io/file (str "./" network-prefix ".blockstore"))
           blockstore (SPVBlockStore. params blockstore-file) ; TODO load checkpoint
