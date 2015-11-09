@@ -11,7 +11,8 @@
                        PeerFilterProvider
                        BloomFilter
                        AbstractPeerEventListener
-                       AbstractBlockChainListener)
+                       AbstractBlockChainListener
+                       DownloadProgressTracker)
     (org.bitcoinj.store SPVBlockStore)
     (org.bitcoinj.net.discovery DnsDiscovery)
     (org.bitcoinj.params TestNet3Params RegTestParams MainNetParams)
@@ -84,6 +85,12 @@
         (log/info "OUTPUT:"  (.toString output)))
       )))
 
+(defn download-progress-tracker []
+  (proxy [DownloadProgressTracker] []
+    (onBlocksDownloaded [peer block filtered-block blocks-left]
+      (when (= 0 (mod blocks-left 100))
+        (log/info "BLOCK DOWNLOADED" blocks-left "blocks left.")))))
+
 ; default namespace key: 1GzjTsqp3LASxLsEd1vsKiDHTuPa2aYm5G
 
 (defn -main
@@ -112,10 +119,13 @@
         (.setUserAgent "key.run", "0.1")
         (.addPeerDiscovery (DnsDiscovery. params))
         (.addPeerFilterProvider peer-filter)
+        (.clearEventListeners)
         (.addEventListener peer-listener)
+        (.addEventListener (download-progress-tracker))
         ; (.setFastCatchupTime) ; TODO set to start of key.run
         (.start)
         (.downloadBlockChain))
+      (log/info "Done downloading blockchain")
 
       (while (not= "q" (clojure.string/lower-case (read-line))))
 
