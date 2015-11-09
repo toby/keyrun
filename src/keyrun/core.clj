@@ -87,9 +87,15 @@
 
 (defn download-progress-tracker []
   (proxy [DownloadProgressTracker] []
+    (onChainDownloadStarted [peer blocks-left]
+      (log/info "Start download of" blocks-left "from blockchain."))
+    (doneDownload []
+      (log/info "Done downloading blocks."))
+    (progress [percent blocks-so-far date]
+      (log/info "Downloaded" (str percent "%") "of" blocks-so-far "blocks."))
     (onBlocksDownloaded [peer block filtered-block blocks-left]
-      (when (= 0 (mod blocks-left 100))
-        (log/info "BLOCK DOWNLOADED" blocks-left "blocks left.")))))
+      (when (= 0 (mod blocks-left 1000))
+        (log/info blocks-left "blocks left.")))))
 
 ; default namespace key: 1GzjTsqp3LASxLsEd1vsKiDHTuPa2aYm5G
 
