@@ -2,7 +2,16 @@
   (:gen-class)
   (:require [clojure.tools.logging :as log])
   (:import
-    (org.bitcoinj.core NetworkParameters Address ECKey PeerGroup BlockChain Utils PeerFilterProvider BloomFilter AbstractPeerEventListener)
+    (org.bitcoinj.core NetworkParameters
+                       Address
+                       ECKey
+                       PeerGroup
+                       BlockChain
+                       Utils
+                       PeerFilterProvider
+                       BloomFilter
+                       AbstractPeerEventListener
+                       AbstractBlockChainListener)
     (org.bitcoinj.store SPVBlockStore)
     (org.bitcoinj.net.discovery DnsDiscovery)
     (org.bitcoinj.params TestNet3Params RegTestParams MainNetParams)
@@ -60,7 +69,16 @@
 (defn peer-event-listener [params]
   (proxy [AbstractPeerEventListener] []
     (onTransaction [peer transaction]
-      (log/info "FOUND TRANSACTION:" (.getHash transaction))
+      (log/info "PEER TRANSACTION:" (.getHash transaction))
+      (doseq [output (.getOutputs transaction)]
+        (log/info "OUTPUT value:"  (.getValue output))
+        (log/info "OUTPUT:"  (.toString output)))
+      )))
+
+(defn blockchain-event-listener [params]
+  (proxy [AbstractBlockChainListener] []
+    (receiveFromBlock [transaction block block-type relativity-offset]
+      (log/info "BLOCK TRANSACTION:" (.getHash transaction))
       (doseq [output (.getOutputs transaction)]
         (log/info "OUTPUT value:"  (.getValue output))
         (log/info "OUTPUT:"  (.toString output)))
@@ -77,12 +95,15 @@
           network-prefix (file-prefix params)
           namespace-address (string->Address address params) ; TODO check nil
           peer-filter (address-peer-filter [namespace-address])
-          event-listener (peer-event-listener params)
+          peer-listener (peer-event-listener params)
+          blockchain-listener (blockchain-event-listener params)
           blockstore-file (clojure.java.io/file (str "./" network-prefix ".blockstore"))
           blockstore (SPVBlockStore. params blockstore-file) ; TODO load checkpoint
           blockchain (BlockChain. params blockstore)
           peer-group (PeerGroup. params blockchain)
           ]
+
+      (.addListener blockchain blockchain-listener)
 
       (log/info "Namespace address:" (.toString namespace-address))
 
@@ -91,7 +112,7 @@
         (.setUserAgent "key.run", "0.1")
         (.addPeerDiscovery (DnsDiscovery. params))
         (.addPeerFilterProvider peer-filter)
-        (.addEventListener event-listener)
+        (.addEventListener peer-listener)
         ; (.setFastCatchupTime) ; TODO set to start of key.run
         (.start)
         (.downloadBlockChain))
