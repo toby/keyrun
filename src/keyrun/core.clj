@@ -1,6 +1,12 @@
 (ns keyrun.core
   (:gen-class)
-  (:require [clojure.tools.logging :as log])
+  (:require [clojure.tools.logging :as log]
+            [com.stuartsierra.component :as component]
+            [ring.adapter.jetty :refer [run-jetty]]
+            [ring.util.response :refer [response header content-type]]
+            [ring.middleware.keyword-params :refer [wrap-keyword-params]]
+            [ring.middleware.params :refer [wrap-params]]
+            )
   (:import
     (org.bitcoinj.core NetworkParameters
                        Address
@@ -78,6 +84,10 @@
 
 (defn blockchain-event-listener [params]
   (proxy [AbstractBlockChainListener] []
+    (isTransactionRelevant [transaction]
+      (log/info "relevant?" transaction))
+    (notifyTransactionIsInBlock [tx-hash block block-type relativity-offset]
+      (log/info "TRANSACTION" tx-hash "is in block" block))
     (receiveFromBlock [transaction block block-type relativity-offset]
       (log/info "BLOCK TRANSACTION:" (.getHash transaction))
       (doseq [output (.getOutputs transaction)]
@@ -137,6 +147,34 @@
 
       )))
 
-(def k "1GzjTsqp3LASxLsEd1vsKiDHTuPa2aYm5G")
-(def params (network-params :default))
-(def ka (string->Address k params))
+(defrecord WebServer [port]
+  component/Lifecycle
+  (start [this]
+    (log/info "Starting web server"))
+  (stop [this]
+    (log/info "Stopping web server")))
+
+(defrecord BitcoinServer [network-type namespace-address]
+  component/Lifecycle
+  (start [this]
+    (log/info "Starting bitcoin")
+    this
+    )
+  (stop [this]
+    (log/info "Stopping bitcoin")
+    this
+    ))
+
+(defn new-system [network-type namespace-address port]
+  (component/system-map
+    :bitcoin-server
+    (BitcoinServer. network-type namespace-address)
+    :web-server
+    (component/using (WebServer. port) [:bitcoin-server])))
+
+(defn start-keyrun [network-type namespace-address port]
+  (try
+       (log/info "Starting key.run")
+       (component/start (new-system network-type namespace-address port))
+       (catch Exception e
+         (log/error (.getMessage e)))))
