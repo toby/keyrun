@@ -8,6 +8,7 @@
             [ring.util.response :refer [response header content-type not-found]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.params :refer [wrap-params]]
+            [ring.middleware.resource :refer [wrap-resource]]
             ))
 
 (defn usage []
@@ -15,8 +16,17 @@
 
 (defmulti router :uri)
 
-(defmethod router "" [request]
-  )
+(defmethod router "/kr/message/payreq" [request]
+  (log/info "PAYMENT REQUEST" (:params request))
+  (response nil))
+
+(defmethod router "/kr/message/pay" [request]
+  (log/info "PAYMENT" (:params request))
+  (response nil))
+
+(defmethod router "/kr/message/payack" [request]
+  (log/info "PAYMENT ACK" (:params request))
+  (response nil))
 
 (defmethod router :default [request]
   (not-found "404 - That's not here!"))
@@ -25,6 +35,7 @@
                      wrap-logging-basic
                      wrap-keyword-params
                      wrap-params
+                     (wrap-resource "public")
                      wrap-root-index))
 
 (defrecord WebServer [app port]
