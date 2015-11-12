@@ -2,20 +2,36 @@
   (:gen-class)
   (:require [clojure.tools.logging :as log]
             [keyrun.bitcoin :as bitcoin]
+            [keyrun.ring :refer [wrap-logging-basic wrap-root-index]]
             [com.stuartsierra.component :as component]
             [ring.adapter.jetty :refer [run-jetty]]
-            [ring.util.response :refer [response header content-type]]
+            [ring.util.response :refer [response header content-type not-found]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.params :refer [wrap-params]]
             ))
 
 (defn usage []
-  (println "Usage: address-to-send-back-to [regtest|testnet]"))
+  (println "Usage: namespace-address [regtest|testnet]"))
 
-(defrecord WebServer [port]
+(defmulti router :uri)
+
+(defmethod router "" [request]
+  )
+
+(defmethod router :default [request]
+  (not-found "404 - That's not here!"))
+
+(def default-app (-> router
+                     wrap-logging-basic
+                     wrap-keyword-params
+                     wrap-params
+                     wrap-root-index))
+
+(defrecord WebServer [app port]
   component/Lifecycle
   (start [this]
-    (log/info "Starting web server"))
+    (log/info "Starting web server")
+    (run-jetty app {:port (Integer. port)}))
   (stop [this]
     (log/info "Stopping web server")))
 
@@ -24,7 +40,7 @@
     :bitcoin-server
     (bitcoin/->BitcoinServer network-type namespace-address)
     :web-server
-    (component/using (WebServer. port) [:bitcoin-server])))
+    (component/using (WebServer. default-app port) [:bitcoin-server])))
 
 (defn start-keyrun [network-type namespace-address port]
   (try

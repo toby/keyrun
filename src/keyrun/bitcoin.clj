@@ -31,8 +31,7 @@
   (try
     (Address. params address)
     (catch Exception e
-      (log/error "Bad address:" (.getMessage e)))
-    ))
+      (log/error "Bad address:" (.getMessage e)))))
 
 (defn address-peer-filter [addresses]
   (reify
