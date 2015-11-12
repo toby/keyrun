@@ -107,29 +107,28 @@
       (when (= 0 (mod blocks-left 1000))
         (log/info blocks-left "blocks left.")))))
 
-; default namespace key: 1GzjTsqp3LASxLsEd1vsKiDHTuPa2aYm5G
+(defrecord WebServer [port]
+  component/Lifecycle
+  (start [this]
+    (log/info "Starting web server"))
+  (stop [this]
+    (log/info "Stopping web server")))
 
-(defn -main
-  "Starting a key.run server"
-  [& [address network-type]]
-  (if (or (= "help" address) (nil? address))
-    (usage)
+(defrecord BitcoinServer [network-type namespace-address]
+  component/Lifecycle
+  (start [this]
+    (log/info "Starting bitcoin")
     (let [params (network-params network-type)
           network-prefix (file-prefix params)
-          namespace-address (string->Address address params) ; TODO check nil
-          peer-filter (address-peer-filter [namespace-address])
+          address (string->Address namespace-address params) ; TODO check nil
+          peer-filter (address-peer-filter [address])
           peer-listener (peer-event-listener params)
           blockchain-listener (blockchain-event-listener params)
           blockstore-file (clojure.java.io/file (str "./" network-prefix ".blockstore"))
           blockstore (SPVBlockStore. params blockstore-file) ; TODO load checkpoint
           blockchain (BlockChain. params blockstore)
-          peer-group (PeerGroup. params blockchain)
-          ]
-
+          peer-group (PeerGroup. params blockchain)]
       (.addListener blockchain blockchain-listener)
-
-      (log/info "Namespace address:" (.toString namespace-address))
-
       (log/info "Starting peer group...")
       (doto peer-group
         (.setUserAgent "key.run", "0.1")
@@ -142,28 +141,10 @@
         (.start)
         (.downloadBlockChain))
       (log/info "Done downloading blockchain")
-
-      (while (not= "q" (clojure.string/lower-case (read-line))))
-
-      )))
-
-(defrecord WebServer [port]
-  component/Lifecycle
-  (start [this]
-    (log/info "Starting web server"))
-  (stop [this]
-    (log/info "Stopping web server")))
-
-(defrecord BitcoinServer [network-type namespace-address]
-  component/Lifecycle
-  (start [this]
-    (log/info "Starting bitcoin")
-    this
-    )
+      this))
   (stop [this]
     (log/info "Stopping bitcoin")
-    this
-    ))
+    this))
 
 (defn new-system [network-type namespace-address port]
   (component/system-map
@@ -174,7 +155,20 @@
 
 (defn start-keyrun [network-type namespace-address port]
   (try
-       (log/info "Starting key.run")
-       (component/start (new-system network-type namespace-address port))
-       (catch Exception e
-         (log/error (.getMessage e)))))
+    (log/info "Starting key.run")
+    (log/info "Namespace address:" (.toString namespace-address))
+    (component/start (new-system network-type namespace-address port))
+    (catch Exception e
+      (log/error (.getMessage e)))))
+
+; default namespace key: 1GzjTsqp3LASxLsEd1vsKiDHTuPa2aYm5G
+
+(defn -main
+  "Starting a key.run server"
+  [& [namespace-address network-type]]
+  (if (or (= "help" namespace-address) (nil? namespace-address))
+    (usage)
+    (do
+      (start-keyrun network-type namespace-address 9090)
+      (while (not= "q" (clojure.string/lower-case (read-line)))))))
+
