@@ -2,7 +2,7 @@
   (:gen-class)
   (:require [clojure.tools.logging :as log]
             [keyrun.bitcoin :as bitcoin]
-            [keyrun.ring :refer [wrap-logging-basic wrap-root-index]]
+            [keyrun.ring :refer [wrap-logging-basic wrap-root-index binary-response]]
             [com.stuartsierra.component :as component]
             [ring.adapter.jetty :refer [run-jetty]]
             [ring.util.response :refer [response header content-type not-found]]
@@ -18,25 +18,28 @@
 
 (defmethod router "/kr/message/payreq" [request]
   (log/info "PAYMENT REQUEST" (:params request))
-  (response nil))
+  (let [payment-request (bitcoin/make-payment-request "1GzjTsqp3LASxLsEd1vsKiDHTuPa2aYm5G")]
+    (binary-response (.toByteArray payment-request) "application/bitcoin-paymentrequest")))
 
 (defmethod router "/kr/message/pay" [request]
   (log/info "PAYMENT" (:params request))
-  (response nil))
+  (-> (response nil)
+      (header "content-type" "application/bitcoin-payment")))
 
 (defmethod router "/kr/message/payack" [request]
   (log/info "PAYMENT ACK" (:params request))
-  (response nil))
+  (-> (response nil)
+      (header "content-type" "application/bitcoin-paymentack")))
 
 (defmethod router :default [request]
   (not-found "404 - That's not here!"))
 
 (def default-app (-> router
-                     wrap-logging-basic
+                     (wrap-resource "public")
+                     wrap-root-index
                      wrap-keyword-params
                      wrap-params
-                     (wrap-resource "public")
-                     wrap-root-index))
+                     wrap-logging-basic))
 
 (defrecord WebServer [app port]
   component/Lifecycle

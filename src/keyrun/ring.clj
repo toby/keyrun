@@ -1,5 +1,11 @@
 (ns keyrun.ring
-  (:require [clojure.tools.logging :as log]))
+  (:require [clojure.tools.logging :as log]
+            [ring.util.response :refer [response header content-type]]))
+
+(defn binary-response [b-array content-type-header]
+  (-> (response (new java.io.ByteArrayInputStream b-array))
+      (content-type content-type-header)
+      (header "Content-Length" (count b-array))))
 
 (defn wrap-root-index [handler]
   (fn [{:keys [uri] :as request}]
