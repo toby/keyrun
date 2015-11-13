@@ -21,6 +21,12 @@
     (com.google.protobuf ByteString)
     ))
 
+(defrecord BitcoinServer [network-type namespace-address])
+
+(defprotocol BitcoinMultiNet
+  (network-params [this] "Return the correct bitcoinj network params object.")
+  (file-prefix [this] "Return a file prefix for this network type."))
+
 (defn make-payment-request [address]
   (let [address-script (-> (doto (ScriptBuilder.)
                              (.op ScriptOpCodes/OP_DUP)
@@ -44,16 +50,6 @@
                             (.setSignature (ByteString/copyFrom (.getBytes "none")))
                             (.build))]
     payment-request))
-
-(defmulti network-params identity)
-(defmethod network-params "testnet" [_] (TestNet3Params/get))
-(defmethod network-params "regtest" [_] (RegTestParams/get))
-(defmethod network-params :default [_] (MainNetParams/get))
-
-(defmulti file-prefix class)
-(defmethod file-prefix TestNet3Params [_] "testnet")
-(defmethod file-prefix RegTestParams [_] "regtest")
-(defmethod file-prefix MainNetParams [_] "production")
 
 (defn string->Address [address params]
   (try
@@ -112,13 +108,24 @@
       (when (= 0 (mod blocks-left 1000))
         (log/info blocks-left "blocks left.")))))
 
-(defrecord BitcoinServer [network-type namespace-address]
+(extend-type BitcoinServer
+  BitcoinMultiNet
+  (network-params [this]
+    (condp = (:network-type this)
+      "testnet" (TestNet3Params/get)
+      "regtest" (RegTestParams/get)
+      (MainNetParams/get)))
+  (file-prefix [this]
+    (condp = (:network-type this)
+      "testnet" "testnet"
+      "regtest" "regtest"
+      "production"))
   component/Lifecycle
   (start [this]
     (log/info "Starting bitcoin")
-    (let [params (network-params network-type)
-          network-prefix (file-prefix params)
-          address (string->Address namespace-address params) ; TODO check nil
+    (let [params (network-params this)
+          network-prefix (file-prefix this)
+          address (string->Address (:namespace-address this) params) ; TODO check nil
           peer-filter (address-peer-filter [address])
           peer-listener (peer-event-listener params)
           blockchain-listener (blockchain-event-listener params)
