@@ -11,6 +11,8 @@
             [ring.middleware.resource :refer [wrap-resource]]
             ))
 
+(def params (atom nil))
+
 (defn usage []
   (println "Usage: namespace-address [regtest|testnet]"))
 
@@ -18,7 +20,8 @@
 
 (defmethod router "/kr/message/payreq" [request]
   (log/info "PAYMENT REQUEST" (:params request))
-  (let [payment-request (bitcoin/make-payment-request "1GzjTsqp3LASxLsEd1vsKiDHTuPa2aYm5G")]
+  (let [to-address (bitcoin/string->Address "1GzjTsqp3LASxLsEd1vsKiDHTuPa2aYm5G" @params)
+        payment-request (bitcoin/make-payment-request to-address)]
     (binary-response (.toByteArray payment-request) "application/bitcoin-paymentrequest")))
 
 (defmethod router "/kr/message/pay" [request]
@@ -41,10 +44,11 @@
                      wrap-params
                      wrap-logging-basic))
 
-(defrecord WebServer [app port]
+(defrecord WebServer [app port network-type]
   component/Lifecycle
   (start [this]
     (log/info "Starting web server")
+    (reset! params (bitcoin/network-params network-type))
     (run-jetty app {:port (Integer. port)}))
   (stop [this]
     (log/info "Stopping web server")))
@@ -54,7 +58,7 @@
     :bitcoin-server
     (bitcoin/->BitcoinServer network-type namespace-address)
     :web-server
-    (component/using (WebServer. default-app port) [:bitcoin-server])))
+    (component/using (WebServer. default-app port network-type) [:bitcoin-server])))
 
 (defn start-keyrun [network-type namespace-address port]
   (try

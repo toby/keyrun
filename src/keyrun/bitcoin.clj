@@ -23,9 +23,11 @@
 
 (defn make-payment-request [address]
   (let [address-script (-> (doto (ScriptBuilder.)
+                             (.op ScriptOpCodes/OP_DUP)
                              (.op ScriptOpCodes/OP_HASH160)
-                             (.data (.getBytes address))
-                             (.op ScriptOpCodes/OP_EQUAL))
+                             (.data (.getHash160 address))
+                             (.op ScriptOpCodes/OP_EQUALVERIFY)
+                             (.op ScriptOpCodes/OP_CHECKSIG))
                            (.build))
         address-output (-> (Protos$Output/newBuilder)
                            (.setAmount 0.0001337)
@@ -39,6 +41,7 @@
                             (.build))
         payment-request (-> (Protos$PaymentRequest/newBuilder)
                             (.setSerializedPaymentDetails (.toByteString payment-details))
+                            (.setSignature (ByteString/copyFrom (.getBytes "none")))
                             (.build))]
     payment-request))
 
