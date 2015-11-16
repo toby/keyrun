@@ -56,7 +56,7 @@
   (component/system-map
     :bitcoin-server
     (map->BitcoinServer {:network-type network-type
-                                 :namespace-address namespace-address})
+                         :namespace-address namespace-address})
     :web-server
     (component/using (map->WebServer {:port port
                                       :network-type network-type})

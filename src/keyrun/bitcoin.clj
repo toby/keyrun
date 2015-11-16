@@ -5,6 +5,7 @@
     (org.bitcoinj.core NetworkParameters
                        Address
                        ECKey
+                       Transaction
                        PeerGroup
                        BlockChain
                        Utils
@@ -36,11 +37,19 @@
                              (.op ScriptOpCodes/OP_CHECKSIG))
                            (.build))
         address-output (-> (Protos$Output/newBuilder)
-                           (.setAmount 0.0001337)
+                           (.setAmount 13370)
                            (.setScript (ByteString/copyFrom (.getProgram address-script)))
                            (.build))
+        data-script (-> (doto (ScriptBuilder.)
+                          (.op ScriptOpCodes/OP_RETURN)
+                          (.data (.getBytes "find my moopies")))
+                        (.build))
+        data-output (-> (Protos$Output/newBuilder)
+                           (.setAmount (-> Transaction/MIN_NONDUST_OUTPUT (.getValue)))
+                           (.setScript (ByteString/copyFrom (.getProgram data-script)))
+                           (.build))
         payment-details (-> (Protos$PaymentDetails/newBuilder)
-                            (.addOutputs 0 address-output)
+                            (.addAllOutputs [address-output data-output])
                             (.setTime (System/currentTimeMillis))
                             (.setPaymentUrl "http://localhost:9090/kr/message/payment")
                             (.setMemo "key.run transaction")
@@ -108,13 +117,15 @@
       (when (= 0 (mod blocks-left 1000))
         (log/info blocks-left "blocks left.")))))
 
+(defmulti params-for-string identity)
+(defmethod params-for-string "testnet" [_] (TestNet3Params/get))
+(defmethod params-for-string "regtest" [_] (RegTestParams/get))
+(defmethod params-for-string :default [_] (MainNetParams/get))
+
 (extend-type BitcoinServer
   BitcoinMultiNet
   (network-params [this]
-    (condp = (:network-type this)
-      "testnet" (TestNet3Params/get)
-      "regtest" (RegTestParams/get)
-      (MainNetParams/get)))
+    (params-for-string (:network-type this)))
   (file-prefix [this]
     (condp = (:network-type this)
       "testnet" "testnet"
