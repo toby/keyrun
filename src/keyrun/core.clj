@@ -22,7 +22,7 @@
       "/kr/message/payreq" (do
                              (log/info "PAYMENT REQUEST" (:params request))
                              (let [to-address (string->Address (:namespace-address bitcoin-server) (network-params bitcoin-server))
-                                   payment-request (make-payment-request to-address)]
+                                   payment-request (make-payment-request to-address (:message params))]
                                (binary-response (.toByteArray payment-request) "application/bitcoin-paymentrequest")))
       "/kr/message/pay" (do
                           (log/info "PAYMENT" (:params request))

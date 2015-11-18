@@ -4,7 +4,6 @@
   (:import
     (org.bitcoinj.core NetworkParameters
                        Address
-                       ECKey
                        Transaction
                        PeerGroup
                        BlockChain
@@ -28,30 +27,22 @@
   (network-params [this] "Return the correct bitcoinj network params object.")
   (file-prefix [this] "Return a file prefix for this network type."))
 
-(defn make-payment-request [address]
-  (let [address-script (-> (doto (ScriptBuilder.)
-                             (.op ScriptOpCodes/OP_DUP)
-                             (.op ScriptOpCodes/OP_HASH160)
-                             (.data (.getHash160 address))
-                             (.op ScriptOpCodes/OP_EQUALVERIFY)
-                             (.op ScriptOpCodes/OP_CHECKSIG))
-                           (.build))
+(defn make-payment-request [address message]
+  (let [min-output-amount (-> Transaction/MIN_NONDUST_OUTPUT (.getValue))
+        address-script (ScriptBuilder/createOutputScript address)
         address-output (-> (Protos$Output/newBuilder)
-                           (.setAmount 13370)
+                           (.setAmount min-output-amount)
                            (.setScript (ByteString/copyFrom (.getProgram address-script)))
                            (.build))
-        data-script (-> (doto (ScriptBuilder.)
-                          (.op ScriptOpCodes/OP_RETURN)
-                          (.data (.getBytes "find my moopies")))
-                        (.build))
+        data-script (ScriptBuilder/createOpReturnScript (.getBytes message))
         data-output (-> (Protos$Output/newBuilder)
-                           (.setAmount (-> Transaction/MIN_NONDUST_OUTPUT (.getValue)))
+                           (.setAmount min-output-amount)
                            (.setScript (ByteString/copyFrom (.getProgram data-script)))
                            (.build))
         payment-details (-> (Protos$PaymentDetails/newBuilder)
                             (.addAllOutputs [address-output data-output])
                             (.setTime (System/currentTimeMillis))
-                            (.setPaymentUrl "http://localhost:9090/kr/message/payment")
+                            (.setPaymentUrl "http://key.run:9090/kr/message/payment")
                             (.setMemo "key.run transaction")
                             (.build))
         payment-request (-> (Protos$PaymentRequest/newBuilder)
@@ -114,8 +105,9 @@
     (progress [percent blocks-so-far date]
       (log/info "Downloaded" (str percent "%") "of" blocks-so-far "blocks."))
     (onBlocksDownloaded [peer block filtered-block blocks-left]
-      (when (= 0 (mod blocks-left 1000))
-        (log/info blocks-left "blocks left.")))))
+      ;(when (= 0 (mod blocks-left 1000))
+        ;(log/info blocks-left "blocks left."))
+      )))
 
 (defmulti params-for-string identity)
 (defmethod params-for-string "testnet" [_] (TestNet3Params/get))
