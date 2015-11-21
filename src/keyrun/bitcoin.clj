@@ -65,7 +65,7 @@
     (endBloomFilterCalculation [this]
       (log/info "End bloom filter calculation"))
     (getBloomFilter [this size falsePositiveRate nTweak]
-      (log/info "get bloom filter")
+      ;(log/info "Get bloom filter")
       (let [bloom (BloomFilter. size falsePositiveRate nTweak)]
         (doseq [address addresses]
           (.insert bloom (.getHash160 address)))
@@ -74,27 +74,33 @@
     (getEarliestKeyCreationTime [this] 0)
     (isRequiringUpdateAllBloomFilter [this] false)))
 
+(defn log-transaction [transaction]
+  (let [outputs (.getOutputs transaction)]
+    (log/info "Transaction" (.getHashAsString transaction))
+    (doseq [output outputs]
+      (log/info "Value:" (.toFriendlyString (.value output)))
+      (doseq [script-chunk (.getChunks (.getScriptPubKey output))]
+        (when (.equalsOpCode script-chunk 106)
+          (log/info "OP_RETURN"))
+        (when (.isPushData script-chunk)
+          (log/info "DATA" (String. (.data script-chunk))))
+        ))))
+
 (defn peer-event-listener [params]
   (proxy [AbstractPeerEventListener] []
     (onTransaction [peer transaction]
-      (log/info "PEER TRANSACTION:" (.getHash transaction))
-      (doseq [output (.getOutputs transaction)]
-        (log/info "OUTPUT value:"  (.getValue output))
-        (log/info "OUTPUT:"  (.toString output)))
-      )))
+      (log/info "Found peer group transaction")
+      (log-transaction transaction))))
 
 (defn blockchain-event-listener [params]
   (proxy [AbstractBlockChainListener] []
     (isTransactionRelevant [transaction]
-      (log/info "relevant?" transaction))
+      (log/info "Found blockchain transaction")
+      (log-transaction transaction))
     (notifyTransactionIsInBlock [tx-hash block block-type relativity-offset]
-      (log/info "TRANSACTION" tx-hash "is in block" block))
+      (log/info "Transaction" tx-hash "is in block" block))
     (receiveFromBlock [transaction block block-type relativity-offset]
-      (log/info "BLOCK TRANSACTION:" (.getHash transaction))
-      (doseq [output (.getOutputs transaction)]
-        (log/info "OUTPUT value:"  (.getValue output))
-        (log/info "OUTPUT:"  (.toString output)))
-      )))
+      (log/info "receiveFromBlock" (.getHashAsString transaction)))))
 
 (defn download-progress-tracker []
   (proxy [DownloadProgressTracker] []
