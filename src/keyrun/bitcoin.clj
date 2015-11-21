@@ -105,8 +105,8 @@
     (progress [percent blocks-so-far date]
       (log/info "Downloaded" (str percent "%") "of" blocks-so-far "blocks."))
     (onBlocksDownloaded [peer block filtered-block blocks-left]
-      ;(when (= 0 (mod blocks-left 1000))
-        ;(log/info blocks-left "blocks left."))
+      (when (and (not= 0 blocks-left) (= 0 (mod blocks-left 1000)))
+        (log/info blocks-left "blocks left."))
       )))
 
 (defmulti params-for-string identity)
@@ -140,11 +140,11 @@
       (log/info "Starting peer group...")
       (doto peer-group
         (.setUserAgent "key.run", "0.1")
-        (.addPeerDiscovery (DnsDiscovery. params))
-        (.addPeerFilterProvider peer-filter)
         (.clearEventListeners)
         (.addEventListener peer-listener)
         (.addEventListener (download-progress-tracker))
+        (.addPeerDiscovery (DnsDiscovery. params))
+        (.addPeerFilterProvider peer-filter)
         ; (.setFastCatchupTime) ; TODO set to start of key.run
         (.start)
         (.downloadBlockChain))
