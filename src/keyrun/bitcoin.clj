@@ -74,17 +74,31 @@
     (getEarliestKeyCreationTime [this] 0)
     (isRequiringUpdateAllBloomFilter [this] false)))
 
+(defn- extract-keyrun-data [script-chunks]
+  (let [result (reduce (fn [{:keys [last-chunk] :as v} script-chunk]
+                         (if (and (not (nil? last-chunk))
+                                  (.equalsOpCode (:last-chunk v) 106))
+                           (-> v
+                               (assoc :last-chunk script-chunk)
+                               (assoc :data (String. (.data script-chunk))))
+                           (assoc v :last-chunk script-chunk)))
+                       {:last-chunk nil :data nil}
+                       script-chunks)]
+    (:data result)))
+
+(defn transform-output [output]
+  (-> {}
+      (assoc :value (.toFriendlyString (.getValue output)))
+      (assoc :data (extract-keyrun-data (.getChunks (.getScriptPubKey output))))))
+
+(defn get-keyrun-transaction [transaction]
+  (let [outputs (map transform-output (.getOutputs transaction))]
+    (first (filter :data outputs))))
+
 (defn log-transaction [transaction]
-  (let [outputs (.getOutputs transaction)]
-    (log/info "Transaction" (.getHashAsString transaction))
-    (doseq [output outputs]
-      (log/info "Value:" (.toFriendlyString (.value output)))
-      (doseq [script-chunk (.getChunks (.getScriptPubKey output))]
-        (when (.equalsOpCode script-chunk 106)
-          (log/info "OP_RETURN"))
-        (when (.isPushData script-chunk)
-          (log/info "DATA" (String. (.data script-chunk))))
-        ))))
+  (let [keyrun-transaction (get-keyrun-transaction transaction)]
+    (when keyrun-transaction
+      (log/info "Transaction" keyrun-transaction))))
 
 (defn peer-event-listener [params]
   (proxy [AbstractPeerEventListener] []
