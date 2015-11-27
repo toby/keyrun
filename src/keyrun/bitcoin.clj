@@ -86,14 +86,24 @@
                        script-chunks)]
     (:data result)))
 
-(defn transform-output [output]
+(defn get-keyrun-output [output]
   (-> {}
-      (assoc :value (.toFriendlyString (.getValue output)))
+      ;(assoc :value (.getValue output))
+      (assoc :friendly-value (.toFriendlyString (.getValue output)))
       (assoc :data (extract-keyrun-data (.getChunks (.getScriptPubKey output))))))
 
 (defn get-keyrun-transaction [transaction]
-  (let [outputs (map transform-output (.getOutputs transaction))]
-    (first (filter :data outputs))))
+  (let [outputs (map get-keyrun-output (.getOutputs transaction))
+        keyrun-output (first (filter :data outputs))]
+    (when keyrun-output
+      (merge keyrun-output
+             {:tx-hash (.getHashAsString transaction)
+              :update-time (.getUpdateTime transaction)
+              :from-address (-> transaction
+                                (.getInput 0)
+                                (.getFromAddress)
+                                (.toString)
+                                )}))))
 
 (defn log-transaction [transaction]
   (let [keyrun-transaction (get-keyrun-transaction transaction)]

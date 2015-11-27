@@ -27,14 +27,17 @@
                 to-address (string->Address (:namespace-address bitcoin-server) (network-params bitcoin-server))
                 payment-request (make-payment-request to-address (:message params))]
             (binary-response (.toByteArray payment-request) "application/bitcoin-paymentrequest")))
+
     (POST "/kr/message/pay" request
           (log/info "PAYMENT" (:params request))
           (-> (response nil)
               (header "content-type" "application/bitcoin-payment")))
+
     (POST "/kr/message/payack" request
           (log/info "PAYMENT ACK" (:params request))
           (-> (response nil)
               (header "content-type" "application/bitcoin-paymentack")))
+
     (route/not-found "404 - That's not here!")))
 
 (defn default-app [bitcoin-server]
