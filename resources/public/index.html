@@ -3,11 +3,34 @@
 <title>key.run</title>
 </head>
 <body>
-<h2>Where am I?</h2>
-<ul>
-  <li><a href="bitcoin:?r=http%3A%2F%2Fkey.run%3A9090%2Fkr%2Fmessage%2Fpayreq%3Fmessage%3Dfind%2Bmy%2Bmoopies">key.run:9090</a></li>
-  <li><a href="bitcoin:?r=http%3A%2F%2Fshinsengumi.local%3A9090%2Fkr%2Fmessage%2Fpayreq%3Fmessage%3Dfind%2Bmy%2Bmoopies">shinsengumi.local:9090</a></li>
-  <li><a href="bitcoin:?r=http%3A%2F%2Flocalhost%3A9090%2Fkr%2Fmessage%2Fpayreq%3Fmessage%3Dfind%2Bmy%2Bmoopies">localhost:9090</a></li>
-</ul>
+<script type="text/javascript">
+var keyrun = {};
+
+keyrun.getToEncode = function() {
+  return document.getElementById("encode-value").value;
+}
+
+keyrun.createPaymentURL = function(string) {
+  if (string) {
+    return "bitcoin:?r=http%3A%2F%2F" + encodeURIComponent(location.host) + "%2Fkr%2Fmessage%2Fpayreq%3Fmessage%3D" + encodeURIComponent(string.replace(/ /g, "+"))
+  }
+}
+
+keyrun.payIt = function() {
+  var encodeValue = keyrun.getToEncode();
+  if (encodeValue) {
+    var paymentURL = keyrun.createPaymentURL(encodeValue);
+    console.log("PaymentURL: " + paymentURL);
+    window.open(paymentURL);
+    document.getElementById("encode-value").value = "";
+  }
+  return false;
+}
+</script>
+
+<form onsubmit="return keyrun.payIt()">
+  <input type="text" id="encode-value">
+  <input type="submit" value="Pay For It">
+</form>
 </body>
 <html>

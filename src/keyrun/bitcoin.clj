@@ -43,7 +43,7 @@
                             (.addAllOutputs [address-output data-output])
                             (.setTime (System/currentTimeMillis))
                             (.setPaymentUrl "http://key.run:9090/kr/message/payment")
-                            (.setMemo "key.run transaction")
+                            (.setMemo (str "key.run '" message "'"))
                             (.build))
         payment-request (-> (Protos$PaymentRequest/newBuilder)
                             (.setSerializedPaymentDetails (.toByteString payment-details))
