@@ -9,6 +9,8 @@
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.resource :refer [wrap-resource]]
+            [compojure.core :refer :all]
+            [compojure.route :as route]
             ))
 
 (def host-name (or (System/getenv "KEYRUN_HOST") (.getCanonicalHostName (java.net.InetAddress/getLocalHost))))
@@ -16,24 +18,24 @@
 (defn usage []
   (println "Usage: namespace-address [regtest|testnet]"))
 
+
 (defn router [bitcoin-server]
-  (fn [{:keys [params] :as request}]
-    (condp = (:uri request)
-      "/kr/message/payreq" (do
-                             (log/info "PAYMENT REQUEST" (:params request))
-                             (let [to-address (string->Address (:namespace-address bitcoin-server) (network-params bitcoin-server))
-                                   payment-request (make-payment-request to-address (:message params))]
-                               (binary-response (.toByteArray payment-request) "application/bitcoin-paymentrequest")))
-      "/kr/message/pay" (do
-                          (log/info "PAYMENT" (:params request))
-                          (-> (response nil)
-                              (header "content-type" "application/bitcoin-payment")))
-      "/kr/message/payack" (do
-                             (log/info "PAYMENT ACK" (:params request))
-                             (-> (response nil)
-                                 (header "content-type" "application/bitcoin-paymentack")))
-      (not-found "404 - That's not here!"))
-    ))
+  (defroutes app
+    (GET "/kr/message/payreq" request
+          (log/info "PAYMENT REQUEST" (:params request))
+          (let [params (:params request)
+                to-address (string->Address (:namespace-address bitcoin-server) (network-params bitcoin-server))
+                payment-request (make-payment-request to-address (:message params))]
+            (binary-response (.toByteArray payment-request) "application/bitcoin-paymentrequest")))
+    (POST "/kr/message/pay" request
+          (log/info "PAYMENT" (:params request))
+          (-> (response nil)
+              (header "content-type" "application/bitcoin-payment")))
+    (POST "/kr/message/payack" request
+          (log/info "PAYMENT ACK" (:params request))
+          (-> (response nil)
+              (header "content-type" "application/bitcoin-paymentack")))
+    (route/not-found "404 - That's not here!")))
 
 (defn default-app [bitcoin-server]
   (-> (router bitcoin-server)
