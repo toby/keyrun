@@ -40,7 +40,8 @@
 (defn router [bitcoin-server]
   (defroutes app
     (GET "/index.html" []
-         (render-page "index.html" {:transactions (printable-transactions)}))
+         (render-page "index.html" {:transactions (printable-transactions)
+                                    :namespace-address (:namespace-address bitcoin-server) }))
     (GET "/kr/message/payreq" request
           (log/info "PAYMENT REQUEST" (:params request))
           (let [params (:params request)

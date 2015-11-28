@@ -7,6 +7,13 @@ html {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+h1 {
+}
+
+h3 {
+  font-size: 16px;
+}
+
 #content {
   width: 550px;
   margin: 0 auto;
@@ -25,7 +32,7 @@ html {
 }
 
 #encode-value {
-  width: 430px;
+  width: 425px;
 }
 
 #transactions {
@@ -65,6 +72,8 @@ keyrun.payIt = function() {
 }
 </script>
 <div id="content">
+  <h1>key.run</h1>
+  <h3>Namespace: {{namespace-address}}</h3>
   <div id="encode-input">
     <form onsubmit="return keyrun.payIt()">
       <input type="text" id="encode-value" placeholder="magnet:?...">

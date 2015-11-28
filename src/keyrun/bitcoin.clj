@@ -53,7 +53,7 @@
         payment-details (-> (Protos$PaymentDetails/newBuilder)
                             (.addAllOutputs [address-output data-output])
                             (.setTime (System/currentTimeMillis))
-                            (.setPaymentUrl "http://key.run:9090/kr/message/payment")
+                            ;(.setPaymentUrl "http://key.run:9090/kr/message/payment")
                             (.setMemo (str "key.run `magnet:?xt=urn:btih:" message "`"))
                             (.build))
         payment-request (-> (Protos$PaymentRequest/newBuilder)
@@ -88,7 +88,8 @@
 (defn- extract-keyrun-data [script-chunks]
   (let [result (reduce (fn [{:keys [last-chunk] :as v} script-chunk]
                          (if (and (not (nil? last-chunk))
-                                  (.equalsOpCode (:last-chunk v) 106))
+                                  (.equalsOpCode (:last-chunk v) 106)
+                                  (= 40 (count (.data script-chunk))))
                            (-> v
                                (assoc :last-chunk script-chunk)
                                (assoc :data (String. (.data script-chunk))))
