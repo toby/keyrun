@@ -39,6 +39,7 @@
 
 (defn make-payment-request [address message]
   (let [min-output-amount (-> Transaction/MIN_NONDUST_OUTPUT (.getValue))
+        min-output-amount (* 2 min-output-amount)
         address-script (ScriptBuilder/createOutputScript address)
         address-output (-> (Protos$Output/newBuilder)
                            (.setAmount min-output-amount)
@@ -53,7 +54,7 @@
                             (.addAllOutputs [address-output data-output])
                             (.setTime (System/currentTimeMillis))
                             (.setPaymentUrl "http://key.run:9090/kr/message/payment")
-                            (.setMemo (str "key.run '" message "'"))
+                            (.setMemo (str "key.run `magnet:?xt=urn:btih:" message "`"))
                             (.build))
         payment-request (-> (Protos$PaymentRequest/newBuilder)
                             (.setSerializedPaymentDetails (.toByteString payment-details))

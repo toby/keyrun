@@ -3,16 +3,29 @@
 <title>key.run</title>
 <style>
 
+html {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
 #content {
   width: 550px;
   margin: 0 auto;
 }
 
 .tx-hash-link {
-  font-size: 10px;
+  font-size: 11px;
+  margin-right: 5px;
+}
+
+.tx-magnet-link {
+  font-size: 12px;
 }
 
 #encode-input {
+}
+
+#encode-value {
+  width: 430px;
 }
 
 #transactions {
@@ -22,10 +35,14 @@
 </head>
 <body>
 <script type="text/javascript">
+
+// example magnet link
+// magnet:?xt=urn:btih:43A5C093C341745501A740F96E77A93D6E3D7727&dn=talvar+2015+720p+bluray+x264+hindi+5+1ch+mrdhila&tr=udp%3A%2F%2Ftracker.publicbt.com%2Fannounce&tr=udp%3A%2F%2Fglotorrents.pw%3A6969%2Fannounce
+
 var keyrun = {};
 
 keyrun.getToEncode = function() {
-  return document.getElementById("encode-value").value;
+  return document.getElementById("encode-value").value
 }
 
 keyrun.createPaymentURL = function(string) {
@@ -36,11 +53,13 @@ keyrun.createPaymentURL = function(string) {
 
 keyrun.payIt = function() {
   var encodeValue = keyrun.getToEncode();
-  if (encodeValue) {
-    var paymentURL = keyrun.createPaymentURL(encodeValue);
+  if (encodeValue && encodeValue.startsWith("magnet:?")) {
+    var paymentURL = keyrun.createPaymentURL(encodeValue.replace(/^.*btih:([^&]*)[&].*$/,'$1'));
     console.log("PaymentURL: " + paymentURL);
     window.open(paymentURL);
     document.getElementById("encode-value").value = "";
+  } else {
+    alert("Please enter a valid magnet URL")
   }
   return false;
 }
@@ -48,16 +67,15 @@ keyrun.payIt = function() {
 <div id="content">
   <div id="encode-input">
     <form onsubmit="return keyrun.payIt()">
-      <input type="text" id="encode-value">
-      <input type="submit" value="Run it!">
+      <input type="text" id="encode-value" placeholder="magnet:?...">
+      <input type="submit" value="Run">
     </form>
   </div>
   <table id="transactions">
     {{#transactions}}
     <tr>
-      <td>{{data}}</td>
-      <td><a class="tx-hash-link" href="https://blockchain.info/tx/{{tx-hash}}">{{tx-hash}}</a></td>
-      <td>{{friendly-value}}</td>
+      <td><a class="tx-hash-link" href="https://blockchain.info/tx/{{tx-hash}}">[blockchain]</a></td>
+      <td><a class="tx-magnet-link" href="magnet:?xt=urn:btih:{{data}}">magnet:?xt=urn:btih:{{data}}</td>
     </tr>
     {{/transactions}}
   </div>
