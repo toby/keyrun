@@ -21,6 +21,16 @@
     (com.google.protobuf ByteString)
     ))
 
+(def keyrun-transactions (atom {}))
+
+(defn add-keyrun-transaction! [transaction]
+  (swap! keyrun-transactions
+         (fn [txs {:keys [tx-hash] :as t}]
+           (if (not (contains? txs tx-hash))
+             (assoc txs tx-hash t)
+             txs))
+         transaction))
+
 (defrecord BitcoinServer [network-type namespace-address])
 
 (defprotocol BitcoinMultiNet
@@ -105,22 +115,23 @@
                                 (.toString)
                                 )}))))
 
-(defn log-transaction [transaction]
+(defn handle-transaction [transaction]
   (let [keyrun-transaction (get-keyrun-transaction transaction)]
     (when keyrun-transaction
+      (add-keyrun-transaction! keyrun-transaction)
       (log/info "Transaction" keyrun-transaction))))
 
 (defn peer-event-listener [params]
   (proxy [AbstractPeerEventListener] []
     (onTransaction [peer transaction]
       (log/info "Found peer group transaction")
-      (log-transaction transaction))))
+      (handle-transaction transaction))))
 
 (defn blockchain-event-listener [params]
   (proxy [AbstractBlockChainListener] []
     (isTransactionRelevant [transaction]
       (log/info "Found blockchain transaction")
-      (log-transaction transaction))
+      (handle-transaction transaction))
     (notifyTransactionIsInBlock [tx-hash block block-type relativity-offset]
       (log/info "Transaction" tx-hash "is in block" block))
     (receiveFromBlock [transaction block block-type relativity-offset]

@@ -10,8 +10,9 @@
                  [com.stuartsierra/component "0.3.0"]
                  [ring "1.4.0"]
                  [ring/ring-jetty-adapter "1.4.0"]
+                 [org.bitcoinj/bitcoinj-core "0.13.3"]
                  [compojure "1.4.0"]
-                 [org.bitcoinj/bitcoinj-core "0.13.3"]]
+                 [de.ubercode.clostache/clostache "1.4.0"]]
   :main ^:skip-aot keyrun.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

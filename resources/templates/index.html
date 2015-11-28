@@ -1,6 +1,11 @@
 <html>
 <head>
 <title>key.run</title>
+<style>
+.tx-hash-link {
+  font-size: 10px;
+}
+</style>
 </head>
 <body>
 <script type="text/javascript">
@@ -27,10 +32,22 @@ keyrun.payIt = function() {
   return false;
 }
 </script>
-
-<form onsubmit="return keyrun.payIt()">
-  <input type="text" id="encode-value">
-  <input type="submit" value="Pay For It">
-</form>
+<div id="content">
+  <div id="encode-input">
+    <form onsubmit="return keyrun.payIt()">
+      <input type="text" id="encode-value">
+      <input type="submit" value="Run it!">
+    </form>
+  </div>
+  <table id="transactions">
+    {{#transactions}}
+    <tr>
+      <td>{{data}}</td>
+      <td><a class="tx-hash-link" href="https://blockchain.info/tx/{{tx-hash}}">{{tx-hash}}</a></td>
+      <td>{{friendly-value}}</td>
+    </tr>
+    {{/transactions}}
+  </div>
+</div>
 </body>
 <html>

@@ -11,6 +11,8 @@
             [ring.middleware.resource :refer [wrap-resource]]
             [compojure.core :refer :all]
             [compojure.route :as route]
+            [clostache.parser :refer [render-resource]]
+            [clojure.java.io :as io]
             ))
 
 (def host-name (or (System/getenv "KEYRUN_HOST") (.getCanonicalHostName (java.net.InetAddress/getLocalHost))))
@@ -18,9 +20,27 @@
 (defn usage []
   (println "Usage: namespace-address [regtest|testnet]"))
 
+(def templates-dir "templates/")
+
+(defn render-page
+  ([template data] (render-page template data nil))
+  ([template data partials]
+   (render-resource
+     (str templates-dir template)
+     data
+     (reduce #(assoc %1 %2 (-> (str templates-dir (name %2) ".html")
+                               io/resource
+                               slurp))
+             {}
+             partials))))
+
+(defn printable-transactions []
+  (map second @keyrun-transactions))
 
 (defn router [bitcoin-server]
   (defroutes app
+    (GET "/index.html" []
+         (render-page "index.html" {:transactions (printable-transactions)}))
     (GET "/kr/message/payreq" request
           (log/info "PAYMENT REQUEST" (:params request))
           (let [params (:params request)
