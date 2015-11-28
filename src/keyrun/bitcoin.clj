@@ -119,7 +119,8 @@
   (let [keyrun-transaction (get-keyrun-transaction transaction)]
     (when keyrun-transaction
       (add-keyrun-transaction! keyrun-transaction)
-      (log/info "Transaction" keyrun-transaction))))
+      (log/info "Transaction" keyrun-transaction)
+      keyrun-transaction)))
 
 (defn peer-event-listener [params]
   (proxy [AbstractPeerEventListener] []
@@ -131,7 +132,9 @@
   (proxy [AbstractBlockChainListener] []
     (isTransactionRelevant [transaction]
       (log/info "Found blockchain transaction")
-      (handle-transaction transaction))
+      (if (some? (handle-transaction transaction))
+        true
+        false))
     (notifyTransactionIsInBlock [tx-hash block block-type relativity-offset]
       (log/info "Transaction" tx-hash "is in block" block))
     (receiveFromBlock [transaction block block-type relativity-offset]
@@ -181,9 +184,9 @@
       (log/info "Starting peer group...")
       (doto peer-group
         (.setUserAgent "key.run", "0.1")
-        (.clearEventListeners)
+        ;(.clearEventListeners)
         (.addEventListener peer-listener)
-        (.addEventListener (download-progress-tracker))
+        ;(.addEventListener (download-progress-tracker))
         (.addPeerDiscovery (DnsDiscovery. params))
         (.addPeerFilterProvider peer-filter)
         ; (.setFastCatchupTime) ; TODO set to start of key.run
