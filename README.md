@@ -2,12 +2,12 @@
 
 ## What is it?
 
-Key.run is an open source, distributed, content publication app built on
+Key.run is an open source, distributed content publication app built on
 Bitcoin and BitTorrent. Content pointers known as magnet links are
 stored on the Bitcoin blockchain and content is resolved on the
 BitTorrent network.
 
-Since key.run uses the blockchain as it's db and BitTorrent for content
+Since key.run uses the blockchain as its db and BitTorrent for content
 storage, it operates without a centralized server and is designed to be
 highly resistant to censorship or manipulation.
 
