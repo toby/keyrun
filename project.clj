@@ -10,6 +10,8 @@
                  [com.stuartsierra/component "0.3.0"]
                  [ring "1.4.0"]
                  [ring/ring-jetty-adapter "1.4.0"]
+                 [org.clojure/java.jdbc "0.4.2"]
+                 [org.xerial/sqlite-jdbc "3.7.2"]
                  [org.bitcoinj/bitcoinj-core "0.13.3"]
                  [compojure "1.4.0"]
                  [de.ubercode.clostache/clostache "1.4.0"]]

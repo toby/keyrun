@@ -81,7 +81,7 @@
     :bitcoin-server
     (map->BitcoinServer {:network-type network-type
                          :namespace-address namespace-address
-                         :db (db/create-memory-db)})
+                         :db (db/create-sqlite-db "keyrun.db")})
     :web-server
     (component/using (map->WebServer {:port port
                                       :network-type network-type})
