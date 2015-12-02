@@ -21,18 +21,6 @@
     (com.google.protobuf ByteString)
     ))
 
-(def keyrun-transactions (atom {}))
-
-(defn add-keyrun-transaction! [transaction]
-  (swap! keyrun-transactions
-         (fn [txs {:keys [tx-hash] :as t}]
-           (if (not (contains? txs tx-hash))
-             (assoc txs tx-hash t)
-             txs))
-         transaction))
-
-(defrecord BitcoinServer [network-type namespace-address])
-
 (defprotocol BitcoinMultiNet
   (network-params [this] "Return the correct bitcoinj network params object.")
   (file-prefix [this] "Return a file prefix for this network type."))
@@ -117,24 +105,24 @@
                                 (.toString)
                                 )}))))
 
-(defn handle-transaction [transaction]
+(defn handle-transaction [db transaction]
   (let [keyrun-transaction (get-keyrun-transaction transaction)]
     (when keyrun-transaction
-      (add-keyrun-transaction! keyrun-transaction)
+      (.add-btih-transaction db keyrun-transaction)
       (log/info "Transaction" keyrun-transaction)
       keyrun-transaction)))
 
-(defn peer-event-listener [params]
+(defn peer-event-listener [db params]
   (proxy [AbstractPeerEventListener] []
     (onTransaction [peer transaction]
       (log/info "Found peer group transaction")
-      (handle-transaction transaction))))
+      (handle-transaction db transaction))))
 
-(defn blockchain-event-listener [params]
+(defn blockchain-event-listener [db params]
   (proxy [AbstractBlockChainListener] []
     (isTransactionRelevant [transaction]
       (log/info "Found blockchain transaction")
-      (if (some? (handle-transaction transaction))
+      (if (some? (handle-transaction db transaction))
         true
         false))
     (notifyTransactionIsInBlock [tx-hash block block-type relativity-offset]
@@ -160,6 +148,8 @@
 (defmethod params-for-string "regtest" [_] (RegTestParams/get))
 (defmethod params-for-string :default [_] (MainNetParams/get))
 
+(defrecord BitcoinServer [network-type namespace-address db])
+
 (extend-type BitcoinServer
   BitcoinMultiNet
   (network-params [this]
@@ -176,8 +166,8 @@
           network-prefix (file-prefix this)
           address (string->Address (:namespace-address this) params) ; TODO check nil
           peer-filter (address-peer-filter [address])
-          peer-listener (peer-event-listener params)
-          blockchain-listener (blockchain-event-listener params)
+          peer-listener (peer-event-listener (:db this) params)
+          blockchain-listener (blockchain-event-listener (:db this) params)
           blockstore-file (clojure.java.io/file (str "./" network-prefix ".blockstore"))
           blockstore (SPVBlockStore. params blockstore-file) ; TODO load checkpoint
           blockchain (BlockChain. params blockstore)

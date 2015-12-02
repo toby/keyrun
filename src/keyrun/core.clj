@@ -2,6 +2,7 @@
   (:gen-class)
   (:require [clojure.tools.logging :as log]
             [keyrun.bitcoin :refer :all]
+            [keyrun.db :as db]
             [keyrun.ring :refer [wrap-logging-basic wrap-root-index binary-response]]
             [com.stuartsierra.component :as component]
             [ring.adapter.jetty :refer [run-jetty]]
@@ -34,13 +35,10 @@
              {}
              partials))))
 
-(defn printable-transactions []
-  (map second @keyrun-transactions))
-
 (defn router [bitcoin-server]
   (defroutes app
     (GET "/index.html" []
-         (render-page "index.html" {:transactions (printable-transactions)
+         (render-page "index.html" {:transactions (-> bitcoin-server :db (.get-btih-transactions))
                                     :namespace-address (:namespace-address bitcoin-server) }))
     (GET "/kr/message/payreq" request
           (log/info "PAYMENT REQUEST" (:params request))
@@ -82,7 +80,8 @@
   (component/system-map
     :bitcoin-server
     (map->BitcoinServer {:network-type network-type
-                         :namespace-address namespace-address})
+                         :namespace-address namespace-address
+                         :db (db/create-memory-db)})
     :web-server
     (component/using (map->WebServer {:port port
                                       :network-type network-type})
