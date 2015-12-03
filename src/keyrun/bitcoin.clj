@@ -109,7 +109,7 @@
 (defn handle-transaction [db transaction]
   (let [keyrun-transaction (get-keyrun-transaction transaction)]
     (when keyrun-transaction
-      (.add-btih-transaction db keyrun-transaction)
+      (.add-keyrun-transaction db keyrun-transaction)
       (log/info "Transaction" keyrun-transaction)
       keyrun-transaction)))
 
@@ -162,7 +162,7 @@
       "production"))
   component/Lifecycle
   (start [this]
-    (log/info "Starting bitcoin")
+    (log/info "Connecting to Bitcoin network")
     (let [params (network-params this)
           network-prefix (file-prefix this)
           address (string->Address (:namespace-address this) params) ; TODO check nil
@@ -177,7 +177,7 @@
       (log/info "Starting peer group...")
       (doto peer-group
         (.setUserAgent "key.run", "0.1")
-        ;(.clearEventListeners)
+        (.clearEventListeners)
         (.addEventListener peer-listener)
         ;(.addEventListener (download-progress-tracker))
         (.addPeerDiscovery (DnsDiscovery. params))
@@ -188,5 +188,5 @@
       (log/info "Done downloading blockchain")
       this))
   (stop [this]
-    (log/info "Stopping bitcoin")
+    (log/info "Disconnect from Bitcoin network")
     this))

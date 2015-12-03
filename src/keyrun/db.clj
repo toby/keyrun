@@ -5,9 +5,9 @@
             [com.stuartsierra.component :refer [Lifecycle]]))
 
 (defprotocol KeyrunTransactionStore
-  (save-btih-transaction [this tx])
-  (get-btih-transaction [this tx-hash])
-  (get-btih-transactions [this]))
+  (add-keyrun-transaction [this tx])
+  (get-keyrun-transaction [this tx-hash])
+  (get-keyrun-transactions [this]))
 
 (defrecord KeyrunTransaction [data tx-hash friendly-value update-time from-address])
 
@@ -15,12 +15,11 @@
   (create-db [this])
   (drop-db [this]))
 
-(defqueries "keyrun/sql/schema.sql")
+(defqueries "keyrun/sql/keyrun.sql")
 
 (defrecord SQLiteDB [spec]
   Lifecycle
   (start [this]
-    (log/info "Loading SQL queries")
     (log/info "Ensuring SQLite table structure" spec)
     (let [db-file (:subname spec)]
       (if (.exists (clojure.java.io/as-file db-file))
@@ -43,11 +42,11 @@
     )
 
   KeyrunTransactionStore
-  (save-btih-transaction [this tx]
-    (save-keyrun-transaction! tx {:connection spec}))
-  (get-btih-transaction [this tx-hash]
+  (add-keyrun-transaction [this tx]
+    (sql-save-keyrun-transaction! tx {:connection spec}))
+  (get-keyrun-transaction [this tx-hash]
     )
-  (get-btih-transactions [this]
+  (get-keyrun-transactions [this]
     (sql-get-keyrun-transactions {} {:connection spec})))
 
 (defn get-sqlite-db [filename]
@@ -57,16 +56,16 @@
 
 (defrecord InMemoryDB [state]
   KeyrunTransactionStore
-  (save-btih-transaction [this tx]
+  (add-keyrun-transaction [this tx]
     (swap! state
            (fn [txs {:keys [tx-hash] :as t}]
              (if (not (contains? txs tx-hash))
                (assoc txs tx-hash t)
                txs))
            tx))
-  (get-btih-transaction [this tx-hash]
+  (get-keyrun-transaction [this tx-hash]
     (get @state tx-hash))
-  (get-btih-transactions [this]
+  (get-keyrun-transactions [this]
     (map second @state)))
 
 (defn get-memory-db []

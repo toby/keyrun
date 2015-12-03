@@ -8,9 +8,9 @@ CREATE TABLE IF NOT EXISTS keyrun_transaction (
   from_address varchar(21)
 )
 
--- name: save-keyrun-transaction!
+-- name: sql-save-keyrun-transaction!
 INSERT INTO keyrun_transaction (data, tx_hash, friendly_value, update_time, from_address)
 VALUES (:data, :tx_hash, :friendly_value, :update_time, :from_address)
 
 -- name: sql-get-keyrun-transactions
-SELECT * FROM keyrun_transactions ORDER BY id DESC
+SELECT * FROM keyrun_transaction ORDER BY id DESC
