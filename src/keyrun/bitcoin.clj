@@ -89,17 +89,18 @@
 (defn get-keyrun-output [output]
   (-> {}
       ;(assoc :value (.getValue output))
-      (assoc :friendly-value (.toFriendlyString (.getValue output)))
+      (assoc :friendly_value (.toFriendlyString (.getValue output)))
       (assoc :data (extract-keyrun-data (.getChunks (.getScriptPubKey output))))))
 
 (defn get-keyrun-transaction [transaction]
   (let [outputs (map get-keyrun-output (.getOutputs transaction))
         keyrun-output (first (filter :data outputs))]
+    ; TODO use KeyrunTransaction record
     (when keyrun-output
       (merge keyrun-output
-             {:tx-hash (.getHashAsString transaction)
-              :update-time (.getUpdateTime transaction)
-              :from-address (-> transaction
+             {:tx_hash (.getHashAsString transaction)
+              :update_time (.getUpdateTime transaction)
+              :from_address (-> transaction
                                 (.getInput 0)
                                 (.getFromAddress)
                                 (.toString)

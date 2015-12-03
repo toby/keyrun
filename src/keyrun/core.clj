@@ -78,10 +78,12 @@
 
 (defn new-system [network-type namespace-address port]
   (component/system-map
+    :db
+    (db/get-sqlite-db "keyrun.db")
     :bitcoin-server
-    (map->BitcoinServer {:network-type network-type
-                         :namespace-address namespace-address
-                         :db (db/create-sqlite-db "keyrun.db")})
+    (component/using (map->BitcoinServer {:network-type network-type
+                                          :namespace-address namespace-address})
+                     [:db])
     :web-server
     (component/using (map->WebServer {:port port
                                       :network-type network-type})
