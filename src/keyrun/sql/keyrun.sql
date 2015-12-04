@@ -8,12 +8,12 @@ CREATE TABLE IF NOT EXISTS keyrun_transaction (
 )
 
 -- name: sql-upsert-keyrun-transaction!
-INSERT OR REPLACE INTO keyrun_transaction (tx_hash, mined, data, friendly_value, sort_time)
-VALUES (:tx_hash, :mined, :data, :friendly_value, :sort_time)
+INSERT OR REPLACE INTO keyrun_transaction (tx_hash, mined, data, friendly_value)
+VALUES (:tx_hash, :mined, :data, :friendly_value)
 
 -- name: sql-insert-keyrun-transaction!
-INSERT INTO keyrun_transaction (tx_hash, mined, data, friendly_value, sort_time)
-VALUES (:tx_hash, :mined, :data, :friendly_value, :sort_time)
+INSERT INTO keyrun_transaction (tx_hash, mined, data, friendly_value)
+VALUES (:tx_hash, :mined, :data, :friendly_value)
 
 -- name: sql-get-keyrun-transaction
 SELECT * FROM keyrun_transaction WHERE tx_hash = :tx_hash LIMIT 1

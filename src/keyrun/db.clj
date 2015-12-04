@@ -31,7 +31,7 @@
 
   DBAdmin
   (create-db [this]
-    (log/info "Create DB")
+    (log/info "Creating SQLite DB:" (str "./" (:subname spec)))
     (try
       (let [con {:connection spec}]
         (ddl-keyrun-transaction-table! nil con))
@@ -50,7 +50,8 @@
   (get-keyrun-transaction [this tx-hash]
     )
   (get-keyrun-transactions [this]
-    (sql-get-keyrun-transactions {} {:connection spec})))
+    (let [transactions (sql-get-keyrun-transactions {} {:connection spec})]
+      (map #(update-in % [:mined] (partial not= 0)) transactions))))
 
 (defn get-sqlite-db [filename]
   (SQLiteDB. {:classname "org.sqlite.JDBC"

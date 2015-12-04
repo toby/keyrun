@@ -59,19 +59,16 @@
 (defn address-peer-filter [addresses]
   (reify
     PeerFilterProvider
-    (beginBloomFilterCalculation [this]
-      (log/info "Begin bloom filter calculation"))
-    (endBloomFilterCalculation [this]
-      (log/info "End bloom filter calculation"))
     (getBloomFilter [this size falsePositiveRate nTweak]
-      ;(log/info "Get bloom filter")
       (let [bloom (BloomFilter. size falsePositiveRate nTweak)]
         (doseq [address addresses]
           (.insert bloom (.getHash160 address)))
         bloom))
     (getBloomFilterElementCount [this] (count addresses))
     (getEarliestKeyCreationTime [this] 0)
-    (isRequiringUpdateAllBloomFilter [this] false)))
+    (isRequiringUpdateAllBloomFilter [this] false)
+    (beginBloomFilterCalculation [this])
+    (endBloomFilterCalculation [this])))
 
 (defn- extract-keyrun-data [script-chunks]
   (let [result (reduce (fn [{:keys [last-chunk] :as v} script-chunk]
@@ -182,7 +179,7 @@
         ;(.addEventListener (download-progress-tracker))
         (.addPeerDiscovery (DnsDiscovery. params))
         (.addPeerFilterProvider peer-filter)
-        (.setFastCatchupTimeSecs 1446379200) ; near the birth of key.run
+        ;(.setFastCatchupTimeSecs 1446379200) ; near the birth of key.run
         (.start)
         (.downloadBlockChain))
       (log/info "Done downloading blockchain")

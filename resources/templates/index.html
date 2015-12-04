@@ -59,6 +59,12 @@ a:active {
   margin-right: 5px;
 }
 
+.tx-unconfirmed {
+  font-size: 11px;
+  margin-right: 5px;
+  color: #3D3D3D;
+}
+
 .tx-magnet-link {
   font-size: 12px;
 }
@@ -104,7 +110,8 @@ a:active {
   <table id="transactions">
     {{#transactions}}
     <tr>
-      <td><a class="tx-hash-link" href="https://blockchain.info/tx/{{tx_hash}}">[blockchain]</a></td>
+      {{^mined}}<td><span class="tx-unconfirmed">unmined</span></td>{{/mined}}
+      {{#mined}}<td><a class="tx-hash-link" href="https://blockchain.info/tx/{{tx_hash}}">[blockchain]</a></td>{{/mined}}
       <td><a class="tx-magnet-link" href="magnet:?xt=urn:btih:{{data}}">magnet:?xt=urn:btih:{{data}}</td>
     </tr>
     {{/transactions}}
