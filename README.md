@@ -86,5 +86,5 @@ publishers and sub namespace creators.
 
 ## Who did this?
 
-Key.run is built by [Toby](http://twitter.com/toby). Feel free to hit
-him up with questions.
+Key.run is built by [Toby](http://twitter.com/toby). If you would like
+to discuss the project there is a #keyrun channel on Freenode.

@@ -4,12 +4,12 @@
             [yesql.core :refer [defqueries]]
             [com.stuartsierra.component :refer [Lifecycle]]))
 
+(defrecord KeyrunTransaction [data tx-hash friendly-value update-time from-address])
+
 (defprotocol KeyrunTransactionStore
   (add-keyrun-transaction [this tx])
   (get-keyrun-transaction [this tx-hash])
   (get-keyrun-transactions [this]))
-
-(defrecord KeyrunTransaction [data tx-hash friendly-value update-time from-address])
 
 (defprotocol DBAdmin
   (create-db [this])
