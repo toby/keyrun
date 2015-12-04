@@ -99,31 +99,31 @@
     (when keyrun-output
       (merge keyrun-output
              {:tx_hash (.getHashAsString transaction)
-              :update_time (.getUpdateTime transaction)
-              :from_address (-> transaction
-                                (.getInput 0)
-                                (.getFromAddress)
-                                (.toString)
-                                )}))))
+              :mined (not (.isPending transaction))}))))
 
-(defn handle-transaction [db transaction]
+(defn handle-transaction [db transaction upsert]
   (let [keyrun-transaction (get-keyrun-transaction transaction)]
     (when keyrun-transaction
-      (.add-keyrun-transaction db keyrun-transaction)
-      (log/info "Transaction" keyrun-transaction)
+      (if upsert
+        (.upsert-keyrun-transaction db keyrun-transaction)
+        (try
+          (.insert-keyrun-transaction db keyrun-transaction)
+          (catch Exception e
+            (log/info "Transaction" (:tx_hash keyrun-transaction) "already exists."))))
+      (log/info "Transaction" (:tx_hash keyrun-transaction) "Pending?" (.isPending transaction))
       keyrun-transaction)))
 
 (defn peer-event-listener [db params]
   (proxy [AbstractPeerEventListener] []
     (onTransaction [peer transaction]
       (log/info "Found peer group transaction")
-      (handle-transaction db transaction))))
+      (handle-transaction db transaction false))))
 
 (defn blockchain-event-listener [db params]
   (proxy [AbstractBlockChainListener] []
     (isTransactionRelevant [transaction]
       (log/info "Found blockchain transaction")
-      (if (some? (handle-transaction db transaction))
+      (if (some? (handle-transaction db transaction true))
         true
         false))
     (notifyTransactionIsInBlock [tx-hash block block-type relativity-offset]
@@ -177,12 +177,12 @@
       (log/info "Starting peer group...")
       (doto peer-group
         (.setUserAgent "key.run", "0.1")
-        (.clearEventListeners)
+        ;(.clearEventListeners)
         (.addEventListener peer-listener)
         ;(.addEventListener (download-progress-tracker))
         (.addPeerDiscovery (DnsDiscovery. params))
         (.addPeerFilterProvider peer-filter)
-        ; (.setFastCatchupTime) ; TODO set to start of key.run
+        (.setFastCatchupTimeSecs 1446379200) ; near the birth of key.run
         (.start)
         (.downloadBlockChain))
       (log/info "Done downloading blockchain")

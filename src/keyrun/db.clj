@@ -4,10 +4,11 @@
             [yesql.core :refer [defqueries]]
             [com.stuartsierra.component :refer [Lifecycle]]))
 
-(defrecord KeyrunTransaction [data tx-hash friendly-value update-time from-address])
+(defrecord KeyrunTransaction [tx-hash mined data friendly-value sort-time])
 
 (defprotocol KeyrunTransactionStore
-  (add-keyrun-transaction [this tx])
+  (insert-keyrun-transaction [this tx])
+  (upsert-keyrun-transaction [this tx])
   (get-keyrun-transaction [this tx-hash])
   (get-keyrun-transactions [this]))
 
@@ -42,8 +43,10 @@
     )
 
   KeyrunTransactionStore
-  (add-keyrun-transaction [this tx]
-    (sql-save-keyrun-transaction! tx {:connection spec}))
+  (insert-keyrun-transaction [this tx]
+    (sql-insert-keyrun-transaction! tx {:connection spec}))
+  (upsert-keyrun-transaction [this tx]
+    (sql-upsert-keyrun-transaction! tx {:connection spec}))
   (get-keyrun-transaction [this tx-hash]
     )
   (get-keyrun-transactions [this]
@@ -53,20 +56,3 @@
   (SQLiteDB. {:classname "org.sqlite.JDBC"
               :subprotocol "sqlite"
               :subname filename}))
-
-(defrecord InMemoryDB [state]
-  KeyrunTransactionStore
-  (add-keyrun-transaction [this tx]
-    (swap! state
-           (fn [txs {:keys [tx-hash] :as t}]
-             (if (not (contains? txs tx-hash))
-               (assoc txs tx-hash t)
-               txs))
-           tx))
-  (get-keyrun-transaction [this tx-hash]
-    (get @state tx-hash))
-  (get-keyrun-transactions [this]
-    (map second @state)))
-
-(defn get-memory-db []
-  (InMemoryDB. (atom {})))
