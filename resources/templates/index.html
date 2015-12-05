@@ -21,6 +21,7 @@
     <tr>
       <!--{{^mined}}<td><span class="tx-unconfirmed">unmined</span></td>{{/mined}}-->
       <!--{{#mined}}<td><a class="tx-hash-link" href="https://blockchain.info/tx/{{tx_hash}}">[blockchain]</a></td>{{/mined}}-->
+      <td>{{tx_hashes}}</td>
       <td>{{mined}}</td>
       <td>{{value}}</td>
       <td><a class="tx-magnet-link" href="magnet:?xt=urn:btih:{{data}}">magnet:?xt=urn:btih:{{data}}</td>
@@ -51,7 +52,7 @@ keyrun.createPaymentURL = function(string) {
 keyrun.payIt = function() {
   var encodeValue = keyrun.getToEncode();
   if (encodeValue && encodeValue.startsWith("magnet:?")) {
-    var paymentURL = keyrun.createPaymentURL(encodeValue.replace(/^.*btih:([^&]*)[&].*$/,'$1'));
+    var paymentURL = keyrun.createPaymentURL(encodeValue.replace(/^.*btih:([^&]*).*$/,'$1'));
     console.log("PaymentURL: " + paymentURL);
     window.open(paymentURL);
     document.getElementById("encode-value").value = "";
