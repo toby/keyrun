@@ -4,7 +4,7 @@
             [yesql.core :refer [defqueries]]
             [com.stuartsierra.component :refer [Lifecycle]]))
 
-(defrecord KeyrunTransaction [tx-hash mined data friendly-value sort-time])
+(defrecord KeyrunTransaction [tx-hash mined data value sort-time])
 
 (defprotocol KeyrunTransactionStore
   (insert-keyrun-transaction [this tx])

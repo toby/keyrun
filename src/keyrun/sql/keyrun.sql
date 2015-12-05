@@ -2,18 +2,18 @@
 CREATE TABLE IF NOT EXISTS keyrun_transaction (
   tx_hash varchar(64) primary key,
   mined boolean DEFAULT false,
-  friendly_value varchar(64),
+  value integer,
   data varchar(40),
   sort_time timestamp DEFAULT CURRENT_TIMESTAMP
 )
 
 -- name: sql-upsert-keyrun-transaction!
-INSERT OR REPLACE INTO keyrun_transaction (tx_hash, mined, data, friendly_value)
-VALUES (:tx_hash, :mined, :data, :friendly_value)
+INSERT OR REPLACE INTO keyrun_transaction (tx_hash, mined, data, value)
+VALUES (:tx_hash, :mined, :data, :value)
 
 -- name: sql-insert-keyrun-transaction!
-INSERT INTO keyrun_transaction (tx_hash, mined, data, friendly_value)
-VALUES (:tx_hash, :mined, :data, :friendly_value)
+INSERT INTO keyrun_transaction (tx_hash, mined, data, value)
+VALUES (:tx_hash, :mined, :data, :value)
 
 -- name: sql-get-keyrun-transaction
 SELECT * FROM keyrun_transaction WHERE tx_hash = :tx_hash LIMIT 1
@@ -22,7 +22,7 @@ SELECT * FROM keyrun_transaction WHERE tx_hash = :tx_hash LIMIT 1
 SELECT * FROM keyrun_transaction ORDER BY sort_time DESC
 
 -- name: sql-get-keyrun-transactions
-SELECT data, group_concat(tx_hash) AS tx_hashes, group_concat(friendly_value) AS value, group_concat(mined) AS mined
+SELECT data, group_concat(tx_hash) AS tx_hashes, group_concat(value) AS value, group_concat(mined) AS mined
 FROM keyrun_transaction
 GROUP BY data
-ORDER BY count(friendly_value) DESC
+ORDER BY count(value) DESC

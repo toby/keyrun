@@ -85,8 +85,7 @@
 
 (defn get-keyrun-output [output]
   (-> {}
-      ;(assoc :value (.getValue output))
-      (assoc :friendly_value (.toFriendlyString (.getValue output)))
+      (assoc :value (.getValue (.getValue output)))
       (assoc :data (extract-keyrun-data (.getChunks (.getScriptPubKey output))))))
 
 (defn get-keyrun-transaction [transaction]
