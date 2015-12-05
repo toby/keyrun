@@ -1,0 +1,91 @@
+html {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  text-align: center;
+}
+
+#content {
+  display: inline-block;
+  border: 1px solid purple;
+  margin: 0 auto;
+}
+
+#header {
+  text-align: center;
+}
+
+#header a {
+  display: inline-block;
+  font-size: 10px;
+  text-decoration: none;
+  margin-left: 5px;
+}
+
+a:link {
+  color: #8C8C8C;
+}
+a:visited {
+  color: #8C8C8C;
+}
+a:hover {
+  color: #ED54FC;
+}
+a:active {
+  color: #E152F0
+}
+
+#header h1 {
+  display: inline-block;
+}
+
+.namespace {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0px 0px 15px 0px;
+}
+
+.namespace-address {
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 400;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.tx-hash-link {
+  font-size: 11px;
+  margin-right: 5px;
+}
+
+.tx-unconfirmed {
+  font-size: 11px;
+  margin-right: 5px;
+  color: #3D3D3D;
+}
+
+.tx-magnet-link {
+  font-size: 12px;
+}
+
+.tx-magnet-link:link {
+  color: #3D3D3D;
+}
+.tx-magnet-link:visited {
+  color: #3D3D3D;
+}
+.tx-magnet-link:hover {
+  color: #ED54FC;
+}
+.tx-magnet-link:active{
+  color: #E152F0
+}
+
+#encode-input {
+}
+
+#encode-value {
+  width: 425px;
+}
+
+#transactions {
+  border: 1px solid pink;
+}

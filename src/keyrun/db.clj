@@ -51,7 +51,9 @@
     )
   (get-keyrun-transactions [this]
     (let [transactions (sql-get-keyrun-transactions {} {:connection spec})]
-      (map #(update-in % [:mined] (partial not= 0)) transactions))))
+      ;(map #(update-in % [:mined] (partial not= 0)) transactions)
+      transactions
+      )))
 
 (defn get-sqlite-db [filename]
   (SQLiteDB. {:classname "org.sqlite.JDBC"

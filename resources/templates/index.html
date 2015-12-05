@@ -1,98 +1,7 @@
 <html>
 <head>
 <title>key.run</title>
-<style>
-
-html {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-}
-
-.namespace {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0px 0px 15px 0px;
-}
-
-.namespace-address {
-  font-size: 16px;
-  font-style: italic;
-  font-weight: 400;
-  display: inline-block;
-  text-decoration: none;
-}
-
-#content {
-  width: 550px;
-  margin: 0 auto;
-}
-
-#header {
-  text-align: center;
-}
-
-#header a {
-  display: inline-block;
-  font-size: 10px;
-  text-decoration: none;
-  margin-left: 5px;
-}
-
-a:link {
-  color: #8C8C8C;
-}
-a:visited {
-  color: #8C8C8C;
-}
-a:hover {
-  color: #ED54FC;
-}
-a:active {
-  color: #E152F0
-}
-
-#header h1 {
-  display: inline-block;
-}
-
-.tx-hash-link {
-  font-size: 11px;
-  margin-right: 5px;
-}
-
-.tx-unconfirmed {
-  font-size: 11px;
-  margin-right: 5px;
-  color: #3D3D3D;
-}
-
-.tx-magnet-link {
-  font-size: 12px;
-}
-
-.tx-magnet-link:link {
-  color: #3D3D3D;
-}
-.tx-magnet-link:visited {
-  color: #3D3D3D;
-}
-.tx-magnet-link:hover {
-  color: #ED54FC;
-}
-.tx-magnet-link:active{
-  color: #E152F0
-}
-
-#encode-input {
-}
-
-#encode-value {
-  width: 425px;
-}
-
-#transactions {
-}
-
-</style>
+<link rel="stylesheet" type="text/css" href="/css/keyrun_shared.css">
 </head>
 <body>
 <div id="content">
@@ -110,8 +19,10 @@ a:active {
   <table id="transactions">
     {{#transactions}}
     <tr>
-      {{^mined}}<td><span class="tx-unconfirmed">unmined</span></td>{{/mined}}
-      {{#mined}}<td><a class="tx-hash-link" href="https://blockchain.info/tx/{{tx_hash}}">[blockchain]</a></td>{{/mined}}
+      <!--{{^mined}}<td><span class="tx-unconfirmed">unmined</span></td>{{/mined}}-->
+      <!--{{#mined}}<td><a class="tx-hash-link" href="https://blockchain.info/tx/{{tx_hash}}">[blockchain]</a></td>{{/mined}}-->
+      <td>{{mined}}</td>
+      <td>{{value}}</td>
       <td><a class="tx-magnet-link" href="magnet:?xt=urn:btih:{{data}}">magnet:?xt=urn:btih:{{data}}</td>
     </tr>
     {{/transactions}}

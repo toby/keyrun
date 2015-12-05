@@ -18,5 +18,11 @@ VALUES (:tx_hash, :mined, :data, :friendly_value)
 -- name: sql-get-keyrun-transaction
 SELECT * FROM keyrun_transaction WHERE tx_hash = :tx_hash LIMIT 1
 
--- name: sql-get-keyrun-transactions
+-- name: sql-get-keyrun-transactions-old
 SELECT * FROM keyrun_transaction ORDER BY sort_time DESC
+
+-- name: sql-get-keyrun-transactions
+SELECT data, group_concat(tx_hash) AS tx_hashes, group_concat(friendly_value) AS value, group_concat(mined) AS mined
+FROM keyrun_transaction
+GROUP BY data
+ORDER BY count(friendly_value) DESC
