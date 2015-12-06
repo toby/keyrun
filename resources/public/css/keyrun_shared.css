@@ -16,37 +16,23 @@ body {
 }
 
 #header {
+  padding-top: 15px;
   text-align: center;
 }
 
 .title-header-link {
   display: inline-block;
-  font-size: 2em;
-  font-weight: 600;
   margin: 15px 0px 15px 0px;
-}
-.title-header-link:link {
-  color: #3D3D3D;
-  text-decoration: none;
-}
-.title-header-link:visited {
-  color: #3D3D3D;
-  text-decoration: none;
-}
-.title-header-link:hover {
-  color: #ED54FC;
-  text-decoration: none;
-}
-.title-header-link:active {
-  color: #E152F0
-  text-decoration: none;
 }
 
 .help-link {
+  position: relative;
+  top: -8;
   display: inline-block;
   font-size: 10px;
   text-decoration: none;
   margin-left: 5px;
+  line-height: -5px;
 }
 
 .help-link:link {
