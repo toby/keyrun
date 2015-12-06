@@ -1,0 +1,11 @@
+{{>header}}
+<div class="sub-header">BTIH: <a class="header-magnet-link" href="magnet:?xt=urn:btih:{{btih}}">{{btih}}</div>
+<table id="transactions">
+  {{#transactions}}
+  <tr>
+    <td><a class="tx-value" href="https://blockchain.info/tx/{{tx_hash}}">{{#commas}}{{value}}{{/commas}}シ</td>
+    <td><a class="tx-magnet-link" href="https://blockchain.info/tx/{{tx_hash}}">{{tx_hash}}</td>
+  </tr>
+  {{/transactions}}
+</table>
+{{>footer}}

@@ -10,7 +10,9 @@
   (insert-keyrun-transaction [this tx])
   (upsert-keyrun-transaction [this tx])
   (get-keyrun-transaction [this tx-hash])
-  (get-keyrun-transactions [this]))
+  (get-keyrun-transactions [this])
+  (get-btih-transactions [this btih])
+  )
 
 (defprotocol DBAdmin
   (create-db [this])
@@ -53,7 +55,9 @@
     (let [transactions (sql-get-keyrun-transactions {} {:connection spec})]
       ;(map #(update-in % [:mined] (partial not= 0)) transactions)
       transactions
-      )))
+      ))
+  (get-btih-transactions [this btih]
+    (sql-get-btih-transactions {:btih btih} {:connection spec})))
 
 (defn get-sqlite-db [filename]
   (SQLiteDB. {:classname "org.sqlite.JDBC"

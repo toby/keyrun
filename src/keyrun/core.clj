@@ -39,7 +39,14 @@
   (defroutes app
     (GET "/index.html" []
          (render-page "index.html" {:transactions (-> bitcoin-server :db (.get-keyrun-transactions))
-                                    :namespace-address (:namespace-address bitcoin-server) }))
+                                    :namespace-address (:namespace-address bitcoin-server)}
+                      [:header :footer]))
+    (GET "/btih/:btih" [btih]
+         (let [transactions (-> bitcoin-server :db (.get-btih-transactions btih))]
+           (render-page "btih.html" {:btih (-> transactions first :data)
+                                     :transactions transactions
+                                     :namespace-address (:namespace-address bitcoin-server)}
+                        [:header :footer])))
     (GET "/kr/message/payreq" request
           (log/info "PAYMENT REQUEST" (:params request))
           (let [params (:params request)

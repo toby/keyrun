@@ -3,24 +3,67 @@ html {
   text-align: center;
 }
 
+body {
+  background-color: #342254;
+  padding: 0px;
+  margin: 0px;
+}
+
 #content {
-  display: inline-block;
-  margin: 0 auto;
+  background-color: #FFFFFF;
+  margin: 0px 5px 0px 5px;
+  min-height: 100%;
 }
 
 #header {
   text-align: center;
 }
 
-#header a {
+.title-header-link {
+  display: inline-block;
+  font-size: 2em;
+  font-weight: 600;
+  margin: 15px 0px 15px 0px;
+}
+.title-header-link:link {
+  color: #3D3D3D;
+  text-decoration: none;
+}
+.title-header-link:visited {
+  color: #3D3D3D;
+  text-decoration: none;
+}
+.title-header-link:hover {
+  color: #ED54FC;
+  text-decoration: none;
+}
+.title-header-link:active {
+  color: #E152F0
+  text-decoration: none;
+}
+
+.help-link {
   display: inline-block;
   font-size: 10px;
   text-decoration: none;
   margin-left: 5px;
 }
 
-a:link {
+.help-link:link {
   color: #8C8C8C;
+}
+.help-link:visited {
+  color: #8C8C8C;
+}
+.help-link:hover {
+  color: #ED54FC;
+}
+.help-link:active {
+  color: #E152F0
+}
+
+a:link {
+  color: #3D3D3D;
 }
 a:visited {
   color: #8C8C8C;
@@ -36,13 +79,13 @@ a:active {
   display: inline-block;
 }
 
-.namespace {
+.sub-header {
   font-size: 16px;
   font-weight: 600;
   margin: 0px 0px 15px 0px;
 }
 
-.namespace-address {
+.sub-header a {
   font-size: 16px;
   font-style: italic;
   font-weight: 400;
@@ -51,31 +94,40 @@ a:active {
 }
 
 .tx-hash-link {
-  font-size: 11px;
+  font-size: 14px;
   margin-right: 5px;
 }
 
 .tx-unconfirmed {
-  font-size: 11px;
+  font-size: 14px;
   margin-right: 5px;
   color: #3D3D3D;
 }
 
-.tx-magnet-link {
-  font-size: 12px;
+.tx-value {
+  font-size: 14px;
+  color: #3D3D3D;
 }
 
-.tx-magnet-link:link {
+.tx-value:link {
   color: #3D3D3D;
+  text-decoration: none;
 }
-.tx-magnet-link:visited {
+.tx-value:visited {
   color: #3D3D3D;
+  text-decoration: none;
 }
-.tx-magnet-link:hover {
+.tx-value:hover {
   color: #ED54FC;
+  text-decoration: none;
 }
-.tx-magnet-link:active{
+.tx-value:active {
   color: #E152F0
+  text-decoration: none;
+}
+
+.tx-magnet-link {
+  font-size: 12px;
 }
 
 #encode-input {
@@ -86,4 +138,8 @@ a:active {
 }
 
 #transactions {
+  display: inline-block;
+}
+#transactions td {
+  padding: 3px;
 }

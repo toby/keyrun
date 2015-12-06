@@ -18,11 +18,14 @@ VALUES (:tx_hash, :mined, :data, :value)
 -- name: sql-get-keyrun-transaction
 SELECT * FROM keyrun_transaction WHERE tx_hash = :tx_hash LIMIT 1
 
--- name: sql-get-keyrun-transactions-old
-SELECT * FROM keyrun_transaction ORDER BY sort_time DESC
-
 -- name: sql-get-keyrun-transactions
 SELECT data, count(tx_hash) AS tx_hashes, sum(value) AS value, sum(mined) AS mined
 FROM keyrun_transaction
 GROUP BY data
 ORDER BY value DESC
+
+-- name: sql-get-btih-transactions
+SELECT *
+FROM keyrun_transaction
+WHERE data = :btih
+ORDER BY sort_time DESC
