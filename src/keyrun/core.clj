@@ -28,7 +28,7 @@
   ([template data partials]
    (render-resource
      (str templates-dir template)
-     data
+     (merge data {:commas (fn [t] (fn [f] (format "%,d" (Integer. (f t)))))})
      (reduce #(assoc %1 %2 (-> (str templates-dir (name %2) ".html")
                                io/resource
                                slurp))

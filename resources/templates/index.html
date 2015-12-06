@@ -21,9 +21,8 @@
     <tr>
       <!--{{^mined}}<td><span class="tx-unconfirmed">unmined</span></td>{{/mined}}-->
       <!--{{#mined}}<td><a class="tx-hash-link" href="https://blockchain.info/tx/{{tx_hash}}">[blockchain]</a></td>{{/mined}}-->
-      <td>{{tx_hashes}}</td>
-      <td>{{mined}}</td>
-      <td>{{value}}</td>
+      <!--<td>{{tx_hashes}}</td>-->
+      <td>{{#commas}}{{value}}{{/commas}}シ</td>
       <td><a class="tx-magnet-link" href="magnet:?xt=urn:btih:{{data}}">magnet:?xt=urn:btih:{{data}}</td>
     </tr>
     {{/transactions}}
