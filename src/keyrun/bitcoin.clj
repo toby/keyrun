@@ -76,26 +76,18 @@
   (reify
     TransactionBag
     (getTransactionPool [this pool]
-      (log/info "getTransactionPool")
       pool)
     (isPayToScriptHashMine [this pay-to-script-hash]
-      (log/info "isPayToScriptHashMine")
       false)
     (isPubKeyHashMine [this pubkey-hash]
-      (log/info "isPubKeyHashMine" pubkey-hash (.getHash160 address) "equal?" (= (.getHash160 address) pubkey-hash))
-      (= (.getHash160 address) pubkey-hash))
+      (= (seq (.getHash160 address)) (seq pubkey-hash)))
     (isPubKeyMine [this pubkey]
       (log/info "isPubKeyMine")
       false)
     (isWatchedScript [this script]
-      (log/info "isWatchedScript" script)
-      (if-let [pubkey-hash (.getPubKeyHash script)]
-        (do
-          (log/info "ADDRESS" (.toString address) (.getHash160 address))
-          (log/info "pubkey-hash" pubkey-hash "equals?" (= (.getHash160 address) pubkey-hash))
-          (= (.getHash160 address) pubkey-hash))
-        false
-        ))))
+      (when-let [pubkey-hash (.getPubKeyHash script)]
+        (= (seq (.getHash160 address)) (seq pubkey-hash)))
+      false)))
 
 (defn- extract-keyrun-data [output]
   (let [script-chunks (.getChunks (.getScriptPubKey output))
@@ -116,12 +108,11 @@
     (:data result)))
 
 (defn- extract-keyrun-value [output address]
-      (if-let [pubkey-hash (.getPubKeyHash script)]
-        (do
-          (log/info "ADDRESS" (.toString address) (.getHash160 address))
-          (log/info "pubkey-hash" pubkey-hash "equals?" (= (.getHash160 address) pubkey-hash))
-          (= (.getHash160 address) pubkey-hash))
-        false
+  (when-let [pubkey-hash (-> output
+                             (.getScriptPubKey)
+                             (.getPubKeyHash))]
+    (when (= (seq (.getHash160 address)) (seq pubkey-hash))
+      (.getValue (.getValue output)))))
 
 (defn get-keyrun-data-output [transaction]
   (let [outputs (.getOutputs transaction)]
@@ -129,11 +120,9 @@
 
 (defn get-keyrun-transaction-value [transaction address]
   (->> (.getOutputs transaction)
-       (map #(assoc {} :value (extract-keyrun-value % address)))
-       (filter :value)
-       first
-       :value
-       (.getValue)))
+       (map #(extract-keyrun-value % address))
+       (filter identity)
+       first))
 
 (defn get-keyrun-transaction [transaction address]
   (let [keyrun-output (get-keyrun-data-output transaction)]

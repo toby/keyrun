@@ -23,7 +23,6 @@
 (defrecord SQLiteDB [spec]
   Lifecycle
   (start [this]
-    (log/info "Ensuring SQLite table structure" spec)
     (let [db-file (:subname spec)]
       (if (.exists (clojure.java.io/as-file db-file))
         (log/info "Found SQLite DB:" db-file)
