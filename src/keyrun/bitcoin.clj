@@ -28,11 +28,11 @@
   (file-prefix [this] "Return a file prefix for this network type."))
 
 (defn make-payment-request [address message]
-  (let [min-output-amount (-> Transaction/MIN_NONDUST_OUTPUT (.getValue))
-        min-output-amount (* 2 min-output-amount)
+  (let [min-output-amount 6000
+        keyrun-fee 10000 ; satoshi
         address-script (ScriptBuilder/createOutputScript address)
         address-output (-> (Protos$Output/newBuilder)
-                           (.setAmount min-output-amount)
+                           (.setAmount keyrun-fee)
                            (.setScript (ByteString/copyFrom (.getProgram address-script)))
                            (.build))
         data-script (ScriptBuilder/createOpReturnScript (.getBytes message))
@@ -44,7 +44,7 @@
                             (.addAllOutputs [address-output data-output])
                             (.setTime (System/currentTimeMillis))
                             ;(.setPaymentUrl "http://key.run:9090/kr/message/payment")
-                            (.setMemo (str "key.run `magnet:?xt=urn:btih:" message "`"))
+                            (.setMemo (str "key.run magnet:?xt=urn:btih:" message))
                             (.build))
         payment-request (-> (Protos$PaymentRequest/newBuilder)
                             (.setSerializedPaymentDetails (.toByteString payment-details))
@@ -82,14 +82,20 @@
       (log/info "isPayToScriptHashMine")
       false)
     (isPubKeyHashMine [this pubkey-hash]
-      (log/info "isPubKeyHashMine")
+      (log/info "isPubKeyHashMine" pubkey-hash (.getHash160 address) "equal?" (= (.getHash160 address) pubkey-hash))
       (= (.getHash160 address) pubkey-hash))
     (isPubKeyMine [this pubkey]
       (log/info "isPubKeyMine")
       false)
     (isWatchedScript [this script]
-      (log/info "isWatchedScript")
-      false)))
+      (log/info "isWatchedScript" script)
+      (if-let [pubkey-hash (.getPubKeyHash script)]
+        (do
+          (log/info "ADDRESS" (.toString address) (.getHash160 address))
+          (log/info "pubkey-hash" pubkey-hash "equals?" (= (.getHash160 address) pubkey-hash))
+          (= (.getHash160 address) pubkey-hash))
+        false
+        ))))
 
 (defn- extract-keyrun-data [output]
   (let [script-chunks (.getChunks (.getScriptPubKey output))
@@ -109,12 +115,28 @@
                        script-chunks)]
     (:data result)))
 
-(defn get-keyrun-output [transaction]
+(defn- extract-keyrun-value [output address]
+      (if-let [pubkey-hash (.getPubKeyHash script)]
+        (do
+          (log/info "ADDRESS" (.toString address) (.getHash160 address))
+          (log/info "pubkey-hash" pubkey-hash "equals?" (= (.getHash160 address) pubkey-hash))
+          (= (.getHash160 address) pubkey-hash))
+        false
+
+(defn get-keyrun-data-output [transaction]
   (let [outputs (.getOutputs transaction)]
     (first (filter :data (map #(assoc {} :data (extract-keyrun-data %)) outputs)))))
 
+(defn get-keyrun-transaction-value [transaction address]
+  (->> (.getOutputs transaction)
+       (map #(assoc {} :value (extract-keyrun-value % address)))
+       (filter :value)
+       first
+       :value
+       (.getValue)))
+
 (defn get-keyrun-transaction [transaction address]
-  (let [keyrun-output (get-keyrun-output transaction)]
+  (let [keyrun-output (get-keyrun-data-output transaction)]
     ; TODO use KeyrunTransaction record
     (when keyrun-output
       (merge keyrun-output
@@ -131,7 +153,7 @@
           (.insert-keyrun-transaction db keyrun-transaction)
           (catch Exception e
             (log/info "Transaction" (:tx_hash keyrun-transaction) "already exists."))))
-      (log/info "Transaction" (:tx_hash keyrun-transaction) "Pending?" (.isPending transaction))
+      (log/info "Transaction" (:tx_hash keyrun-transaction) (:value keyrun-transaction) "Pending?" (.isPending transaction))
       keyrun-transaction)))
 
 (defn peer-event-listener [db address params]
