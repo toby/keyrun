@@ -76,10 +76,20 @@
   (reify
     TransactionBag
     (getTransactionPool [this pool]
-      (log/info "getTransactionPool"))
+      (log/info "getTransactionPool")
+      pool)
     (isPayToScriptHashMine [this pay-to-script-hash]
-      (log/info "isPayToScriptHashMine"))
-    ))
+      (log/info "isPayToScriptHashMine")
+      false)
+    (isPubKeyHashMine [this pubkey-hash]
+      (log/info "isPubKeyHashMine")
+      (= (.getHash160 address) pubkey-hash))
+    (isPubKeyMine [this pubkey]
+      (log/info "isPubKeyMine")
+      false)
+    (isWatchedScript [this script]
+      (log/info "isWatchedScript")
+      false)))
 
 (defn- extract-keyrun-data [output]
   (let [script-chunks (.getChunks (.getScriptPubKey output))
@@ -103,17 +113,17 @@
   (let [outputs (.getOutputs transaction)]
     (first (filter :data (map #(assoc {} :data (extract-keyrun-data %)) outputs)))))
 
-(defn get-keyrun-transaction [transaction]
+(defn get-keyrun-transaction [transaction address]
   (let [keyrun-output (get-keyrun-output transaction)]
     ; TODO use KeyrunTransaction record
     (when keyrun-output
       (merge keyrun-output
              {:tx_hash (.getHashAsString transaction)
-              :value (.getValue (.getValue (.getOutput transaction 0)))
+              :value (.getValue (.getValueSentToMe transaction (address-transaction-bag address)))
               :mined (not (.isPending transaction))}))))
 
-(defn handle-transaction [db transaction upsert]
-  (let [keyrun-transaction (get-keyrun-transaction transaction)]
+(defn handle-transaction [db address transaction upsert]
+  (let [keyrun-transaction (get-keyrun-transaction transaction address)]
     (when keyrun-transaction
       (if upsert
         (.upsert-keyrun-transaction db keyrun-transaction)
@@ -124,17 +134,17 @@
       (log/info "Transaction" (:tx_hash keyrun-transaction) "Pending?" (.isPending transaction))
       keyrun-transaction)))
 
-(defn peer-event-listener [db params]
+(defn peer-event-listener [db address params]
   (proxy [AbstractPeerEventListener] []
     (onTransaction [peer transaction]
       (log/info "Found peer group transaction")
-      (handle-transaction db transaction false))))
+      (handle-transaction db address transaction false))))
 
-(defn blockchain-event-listener [db params]
+(defn blockchain-event-listener [db address params]
   (proxy [AbstractBlockChainListener] []
     (isTransactionRelevant [transaction]
       (log/info "Found blockchain transaction")
-      (if (some? (handle-transaction db transaction true))
+      (if (some? (handle-transaction db address transaction true))
         true
         false))
     (notifyTransactionIsInBlock [tx-hash block block-type relativity-offset]
@@ -178,8 +188,8 @@
           network-prefix (file-prefix this)
           address (string->Address (:namespace-address this) params) ; TODO check nil
           peer-filter (address-peer-filter [address])
-          peer-listener (peer-event-listener (:db this) params)
-          blockchain-listener (blockchain-event-listener (:db this) params)
+          peer-listener (peer-event-listener (:db this) address params)
+          blockchain-listener (blockchain-event-listener (:db this) address params)
           blockstore-file (clojure.java.io/file (str "./" network-prefix ".blockstore"))
           blockstore (SPVBlockStore. params blockstore-file) ; TODO load checkpoint
           blockchain (BlockChain. params blockstore)
