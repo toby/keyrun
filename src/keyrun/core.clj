@@ -103,14 +103,10 @@
     (catch Exception e
       (log/error (.getMessage e)))))
 
-; default namespace key: 1GzjTsqp3LASxLsEd1vsKiDHTuPa2aYm5G
-
 (defn -main
   "Starting a key.run server"
   [& [namespace-address network-type]]
-  (if (or (= "help" namespace-address) (nil? namespace-address))
-    (usage)
-    (do
-      (start-keyrun network-type namespace-address 9090)
-      (while (not= "q" (clojure.string/lower-case (read-line)))))))
+  (let [namespace-address (or namespace-address "1J7THZL4mJ7uhvUx9E5FVaNcconWY1BnQS")]
+    (start-keyrun network-type namespace-address 9090)
+    (while (not= "q" (clojure.string/lower-case (read-line))))))
 

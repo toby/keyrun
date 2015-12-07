@@ -5,6 +5,7 @@
     (org.bitcoinj.core NetworkParameters
                        Address
                        Transaction
+                       TransactionBag
                        PeerGroup
                        BlockChain
                        Utils
@@ -13,6 +14,7 @@
                        AbstractPeerEventListener
                        AbstractBlockChainListener
                        DownloadProgressTracker)
+    (org.bitcoinj.script ScriptOpCodes)
     (org.bitcoinj.store SPVBlockStore)
     (org.bitcoinj.net.discovery DnsDiscovery)
     (org.bitcoinj.params TestNet3Params RegTestParams MainNetParams)
@@ -70,31 +72,44 @@
     (beginBloomFilterCalculation [this])
     (endBloomFilterCalculation [this])))
 
-(defn- extract-keyrun-data [script-chunks]
-  (let [result (reduce (fn [{:keys [last-chunk] :as v} script-chunk]
-                         (if (and (not (nil? last-chunk))
-                                  (.equalsOpCode (:last-chunk v) 106)
-                                  (= 40 (count (.data script-chunk))))
-                           (-> v
-                               (assoc :last-chunk script-chunk)
-                               (assoc :data (String. (.data script-chunk))))
-                           (assoc v :last-chunk script-chunk)))
+(defn address-transaction-bag [address]
+  (reify
+    TransactionBag
+    (getTransactionPool [this pool]
+      (log/info "getTransactionPool"))
+    (isPayToScriptHashMine [this pay-to-script-hash]
+      (log/info "isPayToScriptHashMine"))
+    ))
+
+(defn- extract-keyrun-data [output]
+  (let [script-chunks (.getChunks (.getScriptPubKey output))
+        result (reduce (fn [{:keys [last-chunk] :as v} script-chunk]
+                         (cond (and (not (nil? last-chunk))
+                                    (.equalsOpCode (:last-chunk v) ScriptOpCodes/OP_RETURN)
+                                    (= 40 (count (.data script-chunk)))) (-> v
+                                                                             (assoc :last-chunk script-chunk)
+                                                                             (assoc :data (String. (.data script-chunk))))
+                               (and (not (nil? last-chunk))
+                                    (.equalsOpCode (:last-chunk v) ScriptOpCodes/OP_HASH160)
+                                    (= 40 (count (.data script-chunk)))) (-> v
+                                                                             (assoc :script-chunk)
+                                                                             (assoc :data (String. (.data script-chunk))))
+                               :else (assoc v :last-chunk script-chunk)))
                        {:last-chunk nil :data nil}
                        script-chunks)]
     (:data result)))
 
-(defn get-keyrun-output [output]
-  (-> {}
-      (assoc :value (.getValue (.getValue output)))
-      (assoc :data (extract-keyrun-data (.getChunks (.getScriptPubKey output))))))
+(defn get-keyrun-output [transaction]
+  (let [outputs (.getOutputs transaction)]
+    (first (filter :data (map #(assoc {} :data (extract-keyrun-data %)) outputs)))))
 
 (defn get-keyrun-transaction [transaction]
-  (let [outputs (map get-keyrun-output (.getOutputs transaction))
-        keyrun-output (first (filter :data outputs))]
+  (let [keyrun-output (get-keyrun-output transaction)]
     ; TODO use KeyrunTransaction record
     (when keyrun-output
       (merge keyrun-output
              {:tx_hash (.getHashAsString transaction)
+              :value (.getValue (.getValue (.getOutput transaction 0)))
               :mined (not (.isPending transaction))}))))
 
 (defn handle-transaction [db transaction upsert]
