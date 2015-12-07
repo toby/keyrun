@@ -106,7 +106,7 @@
 (defn -main
   "Starting a key.run server"
   [& [namespace-address network-type]]
-  (let [namespace-address (or namespace-address "1J7THZL4mJ7uhvUx9E5FVaNcconWY1BnQS")]
+  (let [namespace-address (or namespace-address "1NUysE6fnJNhiUGJbWE2wP8T7AFCtRAVs4")]
     (start-keyrun network-type namespace-address 9090)
     (while (not= "q" (clojure.string/lower-case (read-line))))))
 

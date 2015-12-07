@@ -3,9 +3,10 @@
 ## What is it?
 
 Key.run is an open source, distributed content publication app built on
-Bitcoin and BitTorrent. Content pointers known as magnet links are
-stored on the Bitcoin blockchain and content is resolved on the
-BitTorrent network.
+Bitcoin and BitTorrent. Users publish content pointers known as magnet
+links to the blockchain using the key.run web interface and the Bitcoin Core
+wallet. The links are then sorted by the total amount of Bitcoin each
+magnet url has acquired in key.run transaction fees.
 
 Since key.run uses the blockchain as its db and BitTorrent for content
 storage, it operates without a centralized server and is designed to be
@@ -28,26 +29,16 @@ load the transaction needed to publish your link.
 Once you submit your payment using your wallet, your link will show up
 on key.run.
 
-## Hosting your own key.run server
+## Scoring and content ranking
 
-The http://key.run website is hosted as a reference instance of the
-server but you are encouraged to download and host your own server.
+Magnet links contain a BTIH (BitTorrent info hash) that represents a
+unique individual torrent file. BTIHs are distinct in the key.run db and
+multiple attempts to publish the same BTIH will be aggregated. The total
+value sent to publish a particular BTIH is used for ranking.
 
-Key.run is currently built in Clojure so you'll need the following
-installed on your machine:
-
-* [Java](https://www.java.com/en/download/)
-* [Leiningen](http://leiningen.org)
-
-You can then [download the key.run source](https://git.playgrub.com/toby/keyrun)
-and run it with the command `lein run 1J7THZL4mJ7uhvUx9E5FVaNcconWY1BnQS`.
-
-You can also build the project as an uberjar and run it on any machine
-that has Java installed (Leiningen isn't needed).
-
-Once started, the key.run server will synchronize with the Bitcoin
-network then be available for use. By default the web server runs on
-port 9090.
+Currently content is ranked by total Bitcoin amount used to publish that
+BTIH. In the future there will be more of a distinction between number
+of transactions and total amount possibly including the ability to sort by each.
 
 ## Namespace keys
 
@@ -60,6 +51,41 @@ The default key.run namespace is **1J7THZL4mJ7uhvUx9E5FVaNcconWY1BnQS**.
 The server uses Bitcoin [SPV](https://bitcoin.org/en/developer-guide#simplified-payment-verification-spv)
 and will only look for key.run transactions on that bitcoin address. All
 key.run fees are sent to the namespace key.
+
+## Transaction Fees
+
+Key.run watches for transactions on a single namespace key per server
+instance. Bitcoin sent in those transactions is collected by the namespace
+owner. Fees are currently fixed at 10,000 Satoshi per transactions but will
+eventually be variable (down to the smallest amount allowed in a Bitcoin
+transaction).
+
+By default, key.run operates with the namespace key [2NUysE6fnJNhiUGJbWE2wP8T7AFCtRAVs4](bitcoin:1NUysE6fnJNhiUGJbWE2wP8T7AFCtRAVs4).
+Fees collected are used to help continue the development of key.run, so
+please consider using the default namespace even on your own hosted servers.
+You can also donate bitcoin directly to the namespace key if you would like
+to support the project.
+
+## Hosting your own key.run server
+
+The http://key.run website is hosted as a reference instance of the
+server but you are encouraged to download and host your own server.
+
+Key.run is currently built in Clojure so you'll need the following
+installed on your machine:
+
+* [Java](https://www.java.com/en/download/)
+* [Leiningen](http://leiningen.org)
+
+You can then [download the key.run source](https://git.playgrub.com/toby/keyrun)
+and run it with the command `lein run`.
+
+You can also build the project as an uberjar and run it on any machine
+that has Java installed (Leiningen isn't needed).
+
+Once started, the key.run server will synchronize with the Bitcoin
+network then be available for use. By default the web server runs on
+port 9090.
 
 ## BIP-70 Payment Protocol
 
@@ -80,9 +106,8 @@ transaction constructed by key.run.
 
 Key.run is a nascent technology and is meant as a technology
 demonstration. Future versions will resolve magnet link metadata, allow
-for sub namespace creation, sort and score content with Bitcoin based
-voting and allow users to earn Bitcoin by splitting fees with content
-publishers and sub namespace creators.
+for sub namespace creation and allow users to earn Bitcoin by splitting
+fees with content publishers and sub namespace creators.
 
 ## Who did this?
 
