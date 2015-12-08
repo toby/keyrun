@@ -47,7 +47,7 @@ transactions. Messages published to one namespace will not be visible in
 other namespaces.
 
 When you start the key.run server you have to give it a namespace key.
-The default key.run namespace is **1J7THZL4mJ7uhvUx9E5FVaNcconWY1BnQS**.
+The default key.run namespace is [2NUysE6fnJNhiUGJbWE2wP8T7AFCtRAVs4](bitcoin:1NUysE6fnJNhiUGJbWE2wP8T7AFCtRAVs4).
 The server uses Bitcoin [SPV](https://bitcoin.org/en/developer-guide#simplified-payment-verification-spv)
 and will only look for key.run transactions on that bitcoin address. All
 key.run fees are sent to the namespace key.
