@@ -8,29 +8,32 @@
             [ring.util.response :refer [response header content-type not-found]]
             [keyrun.ring :refer [binary-response]]
             [compojure.route :as route]
-            [compojure.core :refer [routes GET POST]]
-            )
+            [compojure.core :refer [routes GET POST]])
   (:import [keyrun.web WebServer]))
 
 (extend-type WebServer
   Routing
   (get-router [this]
-    (let [bitcoin-server (:bitcoin-server this)]
+    (let [bitcoin-server (:bitcoin-server this)
+          db (-> this :bitcoin-server :db)
+          namespace-address (:namespace-address bitcoin-server)]
       (routes
         (GET "/index.html" []
-             (render-page "index.html" {:transactions (-> bitcoin-server :db (.get-keyrun-transactions))
-                                        :namespace-address (:namespace-address bitcoin-server)}
+             (render-page "index.html" {:transactions (.get-keyrun-transactions db)
+                                        :namespace-address namespace-address}
                           [:header :footer]))
+
         (GET "/btih/:btih" [btih]
-             (let [transactions (-> bitcoin-server :db (.get-btih-transactions btih))]
+             (let [transactions (.get-btih-transactions db btih)]
                (render-page "btih.html" {:btih (-> transactions first :data)
                                          :transactions transactions
-                                         :namespace-address (:namespace-address bitcoin-server)}
+                                         :namespace-address namespace-address}
                             [:header :footer])))
+
         (GET "/kr/message/payreq" request
              (log/info "PAYMENT REQUEST" (:params request))
              (let [params (:params request)
-                   to-address (string->Address (:namespace-address bitcoin-server) (network-params bitcoin-server))
+                   to-address (string->Address namespace-address (network-params bitcoin-server))
                    payment-request (make-payment-request to-address (:message params))]
                (binary-response (.toByteArray payment-request) "application/bitcoin-paymentrequest")))
 
@@ -46,7 +49,7 @@
 
         (route/not-found "404 - That's not here!")))))
 
-(defn new-system [network-type namespace-address port]
+(defn new-system [namespace-address port network-type]
   (component/system-map
     :db
     (db/get-sqlite-db "keyrun.db")
@@ -60,18 +63,16 @@
     (component/using (map->WebServer {:port port})
                      [:bitcoin-server])))
 
-(defn start-keyrun [network-type namespace-address port]
+(defn start-keyrun [namespace-address port network-type]
   (try
-    (log/info "Starting key.run")
-    (component/start (new-system network-type namespace-address port))
+    (component/start (new-system namespace-address port network-type))
     (catch Exception e
       (log/error (.getMessage e)))))
 
-(defn -main
-  "Starting a key.run server"
-  [& [namespace-address network-type]]
+(defn -main [& [namespace-address]]
   (let [namespace-address (or namespace-address "1NUysE6fnJNhiUGJbWE2wP8T7AFCtRAVs4")
-        port (Integer. (or (System/getenv "KEYRUN_HTTP_PORT") 9090))]
-    (start-keyrun network-type namespace-address port)
+        port (Integer. (or (System/getenv "KEYRUN_HTTP_PORT") 9090))
+        network-type (or (System/getenv "KEYRUN_BITCOIN_NETWORK") "production")]
+    (start-keyrun namespace-address port network-type)
     (while (not= "q" (clojure.string/lower-case (read-line))))))
 
