@@ -8,15 +8,15 @@
             [ring.util.response :refer [response header content-type not-found]]
             [keyrun.ring :refer [binary-response]]
             [compojure.route :as route]
-            [compojure.core :refer [defroutes GET POST]]
+            [compojure.core :refer [routes GET POST]]
             )
   (:import [keyrun.web WebServer]))
 
 (extend-type WebServer
   Routing
-  (define-router [this]
+  (get-router [this]
     (let [bitcoin-server (:bitcoin-server this)]
-      (defroutes app-router
+      (routes
         (GET "/index.html" []
              (render-page "index.html" {:transactions (-> bitcoin-server :db (.get-keyrun-transactions))
                                         :namespace-address (:namespace-address bitcoin-server)}

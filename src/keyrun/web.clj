@@ -26,7 +26,7 @@
              partials))))
 
 (defprotocol Routing
-  (define-router [this]))
+  (get-router [this]))
 
 (defn default-app [router]
   (-> router
@@ -40,7 +40,7 @@
   component/Lifecycle
   (start [this]
     (log/info "Starting web server")
-    (run-jetty (default-app (define-router this)) {:port (Integer. port)}))
+    (run-jetty (default-app (get-router this)) {:port (Integer. port)}))
   (stop [this]
     (log/info "Stopping web server")))
 
