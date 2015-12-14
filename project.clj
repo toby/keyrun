@@ -1,4 +1,4 @@
-(defproject keyrun "0.3.0"
+(defproject keyrun "0.3.1-SNAPSHOT"
   :description "key.run server"
   :url "http://key.run"
   :license {:name "Eclipse Public License"
