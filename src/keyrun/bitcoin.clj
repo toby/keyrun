@@ -148,13 +148,13 @@
 (defn peer-event-listener [db address params]
   (proxy [AbstractPeerEventListener] []
     (onTransaction [peer transaction]
-      (log/info "Found peer group transaction")
+      (log/info "Found peer group transaction" (.getHashAsString transaction))
       (handle-transaction db address transaction false))))
 
 (defn blockchain-event-listener [db address params]
   (proxy [AbstractBlockChainListener] []
     (isTransactionRelevant [transaction]
-      (log/info "Found blockchain transaction")
+      (log/info "Found blockchain transaction" (.getHashAsString transaction))
       (if (some? (handle-transaction db address transaction true))
         true
         false))
