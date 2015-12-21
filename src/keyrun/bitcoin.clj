@@ -37,7 +37,7 @@
                            (.build))
         data-script (ScriptBuilder/createOpReturnScript (.getBytes message))
         data-output (-> (Protos$Output/newBuilder)
-                           (.setAmount min-output-amount)
+                           (.setAmount 0)
                            (.setScript (ByteString/copyFrom (.getProgram data-script)))
                            (.build))
         payment-details (-> (Protos$PaymentDetails/newBuilder)
@@ -100,7 +100,7 @@
                                (and (not (nil? last-chunk))
                                     (.equalsOpCode (:last-chunk v) ScriptOpCodes/OP_HASH160)
                                     (= 40 (count (.data script-chunk)))) (-> v
-                                                                             (assoc :script-chunk)
+                                                                             (assoc :last-chunk script-chunk)
                                                                              (assoc :data (String. (.data script-chunk))))
                                :else (assoc v :last-chunk script-chunk)))
                        {:last-chunk nil :data nil}
